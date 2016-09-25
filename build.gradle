@@ -1,0 +1,28 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenCentral()
+    maven { url "https://jitpack.io" } // To fetch from Github
+}
+
+dependencies {
+    testCompile 'junit:junit:4.11'
+    compile 'com.github.peq:jMpq:e9ddcaa0cf2a3d860d2bc59779690312bbbb3c20',
+            'org.antlr:antlr4:4.5'
+    compile 'junit:junit:4.12'
+    compile group: 'com.eclipsesource.minimal-json', name: 'minimal-json', version: '0.9.4'
+}
+
+jar {
+    baseName = 'vrj'
+    manifest {
+        attributes 'Main-Class': 'ruke.vrj.Main'
+    }
+    // Include dependencies in final jar
+    from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+}
+
+compileJava {
+    sourceCompatibility = '1.8'
+}
