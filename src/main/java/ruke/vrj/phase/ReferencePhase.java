@@ -1,5 +1,6 @@
 package ruke.vrj.phase;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import ruke.vrj.antlr.vrjParser;
 import ruke.vrj.symbol.FunctionSymbol;
 import ruke.vrj.symbol.Symbol;
@@ -14,10 +15,17 @@ import java.util.List;
  */
 public class ReferencePhase extends BasePhase {
     
+    private int line;
+    private int range;
+    
     private Validator validator;
     
-    public ReferencePhase(Symbol scope) {
+    public ReferencePhase(Symbol scope, int line, int range) {
         super(scope);
+        
+        this.line = line;
+        this.range = range;
+        
         setValidator(new Validator());
     }
     
@@ -25,32 +33,83 @@ public class ReferencePhase extends BasePhase {
         this.validator = validator;
     }
     
+    private boolean inRange(Token token) {
+        if (line == -1) {
+            return true;
+        }
+        return line + range >= token.getLine() && line - range <= token.getLine();
+    }
+    
+    private boolean inRange(ParserRuleContext ctx) {
+        return inRange(ctx.getStart());
+    }
+    
     private void checkForVariable(Symbol symbol, Token token) {
+        if (!inRange(token)) {
+            return;
+        }
+        
         if (!this.validator.isVariable(symbol)) {
             addError(token, token.getText() + " is not a variable");
         }
     }
     
+    private void checkForFunction(Symbol symbol, Token token) {
+        if (!inRange(token)) {
+            return;
+        }
+        
+        if (!this.validator.isFunction(symbol)) {
+            addError(token, token.getText() + " is not a function");
+        }
+    }
+    
     public void checkCompatibleType(Symbol a, Symbol b, Token token) {
+        if (!inRange(token)) {
+            return;
+        }
+        
         if (!this.validator.isTypeCompatible(a, b)) {
-            addError(
-                token,
-                "Incompatible type. " +
-                "Expected " + a.getType().getName() + " " +
-                "but " + b.getType().getName() + " given"
-            );
+            if (a == null || b == null) {
+                addError(token, "Expected type");
+            } else {
+                addError(
+                    token,
+                    "Incompatible type. " +
+                        "Expected " + a.getType().getName() + " " +
+                        "but " + b.getType().getName() + " given"
+                );
+            }
         }
     }
     
     private void checkForNumeric(Symbol symbol, Token token) {
+        if (!inRange(token)) {
+            return;
+        }
+        
         if (!this.validator.isNumber(symbol)) {
             addError(token, token.getText() + " is not a numeric expression");
         }
     }
     
     private void checkForBoolean(Symbol symbol, Token token) {
+        if (!inRange(token)) {
+            return;
+        }
+        
         if (!this.validator.isBoolean(symbol)) {
             addError(token, token.getText() + " is not a boolean expression");
+        }
+    }
+    
+    private void checkForValidType(Symbol symbol, Token token) {
+        if (!inRange(token)) {
+            return;
+        }
+        
+        if (!this.validator.isValidType(symbol)) {
+            addError(token, symbol.getName() + " is not a valid type");
         }
     }
     
@@ -75,9 +134,7 @@ public class ReferencePhase extends BasePhase {
             type = natives.get("nothing");
         }
         
-        if (!this.validator.isValidType(type)) {
-            addError(ctx.getStart(), type.getName() + " is not a valid type");
-        }
+        checkForValidType(type, ctx.getStart());
         
         return type;
     }
@@ -138,6 +195,10 @@ public class ReferencePhase extends BasePhase {
     public Symbol visitVariableExpression(vrjParser.VariableExpressionContext ctx) {
         Symbol variable = visit(ctx.name());
         
+        if (!inRange(ctx)) {
+            return variable.getType();
+        }
+        
         symbols.put(symbols.getToken(ctx), variable);
     
         checkForVariable(variable, ctx.name().getStart());
@@ -151,11 +212,15 @@ public class ReferencePhase extends BasePhase {
     public Symbol visitFunctionExpression(vrjParser.FunctionExpressionContext ctx) {
         Symbol function = visit(ctx.name());
         
+        if (!inRange(ctx)) {
+            return function.getType();
+        }
+        
+        checkForFunction(function, ctx.name().getStart());
+        
         symbols.put(symbols.getToken(ctx), function);
         
-        if (!this.validator.isFunction(function)) {
-            addError(ctx.name().getStart(), ctx.name().getText() + " is not a function");
-        } else {
+        if (this.validator.isFunction(function)) {
             ArrayList<Symbol> params = ((FunctionSymbol) function).getParams();
             List<vrjParser.ExpressionContext> exprs = null;
             
@@ -211,9 +276,7 @@ public class ReferencePhase extends BasePhase {
         
         symbols.put(symbols.getToken(ctx), function);
         
-        if (!this.validator.isFunction(function)) {
-            addError(ctx.getStart(), ctx.name() + " is not a function");
-        }
+        checkForFunction(function, ctx.name().getStart());
         
         return natives.get("code");
     }
@@ -234,7 +297,7 @@ public class ReferencePhase extends BasePhase {
         Symbol function = visit(ctx.functionSignature());
         
         symbols.put(symbols.getToken(ctx), function);
-    
+        
         scope = function;
         super.visitFunctionDefinition(ctx);
         scope = function.getParent();

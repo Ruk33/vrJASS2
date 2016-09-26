@@ -5,15 +5,12 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.TokenStream;
 import ruke.vrj.antlr.vrjLexer;
-import ruke.vrj.exception.CompileException;
-import ruke.vrj.phase.DefinitionPhase;
-import ruke.vrj.phase.ReferencePhase;
-import ruke.vrj.phase.TranslatorPhase;
-import ruke.vrj.phase.TypePhase;
-import ruke.vrj.symbol.Symbol;
-
 import ruke.vrj.antlr.vrjParser;
+import ruke.vrj.exception.CompileException;
+import ruke.vrj.lib.DefinitionPhaseResult;
 import ruke.vrj.lib.TokenSymbolMap;
+import ruke.vrj.phase.*;
+import ruke.vrj.symbol.Symbol;
 
 import java.util.ArrayList;
 
@@ -22,18 +19,8 @@ import java.util.ArrayList;
  */
 public class Compiler {
     
-    private Symbol scope;
-    private TokenSymbolMap symbols;
-    private DefinitionPhase definitionPhase;
-    private ReferencePhase referencePhase;
-    
-    public Symbol getScope() {
-        return scope;
-    }
-    
-    public TokenSymbolMap getSymbolsMap() {
-        return symbols;
-    }
+    private ArrayList<CompileException> definitionErrors = new ArrayList<>();
+    private ArrayList<CompileException> referenceErrors = new ArrayList<>();
     
     public ArrayList<CompileException> getAllErrors() {
         ArrayList<CompileException> errors = new ArrayList<>();
@@ -45,43 +32,73 @@ public class Compiler {
     }
     
     public ArrayList<CompileException> getDefinitionErrors() {
-        return new ArrayList<>(this.definitionPhase.getErrors());
+        return definitionErrors;
     }
     
     public ArrayList<CompileException> getReferenceErrors() {
-        return new ArrayList<>(this.referencePhase.getErrors());
+        return referenceErrors;
+    }
+    
+    public DefinitionPhaseResult runDefinitionPhase(ANTLRInputStream input) {
+        Lexer lexer = new vrjLexer(input);
+        TokenStream token = new CommonTokenStream(lexer);
+        vrjParser parser = new vrjParser(token);
+    
+        Symbol scope = new Symbol("vrj");
+        TokenSymbolMap symbols = new TokenSymbolMap();
+        
+        DefinitionPhase definitionPhase = new DefinitionPhase(scope);
+        TypePhase typePhase = new TypePhase(scope);
+        
+        definitionPhase.setTokenSymbolMap(symbols);
+        typePhase.setTokenSymbolMap(symbols);
+        
+        definitionPhase.visit(parser.init());
+        parser.reset();
+    
+        typePhase.visit(parser.init());
+        parser.reset();
+        
+        return new DefinitionPhaseResult(parser, scope, symbols, definitionPhase.getErrors());
+    }
+    
+    public ArrayList<CompileException> runReferencePhase(DefinitionPhaseResult data, int line, int range) {
+        ReferencePhase referencePhase = new ReferencePhase(data.getScope(), line, range);
+        referencePhase.setTokenSymbolMap(data.getSymbols());
+    
+        referencePhase.visit(data.getParser().init());
+        data.getParser().reset();
+        
+        return new ArrayList<>(referencePhase.getErrors());
+    }
+    
+    public ArrayList<Symbol> runSuggestPhase(DefinitionPhaseResult data, int line, int _char) {
+        SuggestionPhase suggestPhase = new SuggestionPhase(data.getScope(), line, _char);
+        suggestPhase.setTokenSymbolMap(data.getSymbols());
+    
+        suggestPhase.visit(data.getParser().init());
+        data.getParser().reset();
+        
+        return suggestPhase.getSuggestions();
+    }
+    
+    public String runTranslatePhase(DefinitionPhaseResult data) {
+        TranslatorPhase translatePhase = new TranslatorPhase(data.getSymbols());
+        String result = translatePhase.visit(data.getParser().init()).translate();
+        
+        data.getParser().reset();
+        
+        return result.trim();
     }
     
     public String compile(ANTLRInputStream input) {
-        try {
-            Lexer lexer = new vrjLexer(input);
-            TokenStream token = new CommonTokenStream(lexer);
-            vrjParser parser = new vrjParser(token);
-    
-            scope = new Symbol("vrj");
-            symbols = new TokenSymbolMap();
-            
-            definitionPhase = new DefinitionPhase(scope);
-            TypePhase typePhase = new TypePhase(scope);
-            referencePhase = new ReferencePhase(scope);
-            
-            definitionPhase.setTokenSymbolMap(symbols);
-            referencePhase.setTokenSymbolMap(symbols);
-            
-            definitionPhase.visit(parser.init());
-            parser.reset();
-    
-            typePhase.visit(parser.init());
-            parser.reset();
-    
-            referencePhase.visit(parser.init());
-            parser.reset();
-    
-            TranslatorPhase translatePhase = new TranslatorPhase(symbols);
-            
-            return translatePhase.visit(parser.init()).translate().trim();
-        } catch (Exception e) {
-            e.printStackTrace();
+        DefinitionPhaseResult data = runDefinitionPhase(input);
+        
+        definitionErrors = data.getErrors();
+        referenceErrors = runReferencePhase(data, -1, -1);
+        
+        if (definitionErrors.isEmpty() && referenceErrors.isEmpty()) {
+            return runTranslatePhase(data);
         }
         
         return null;

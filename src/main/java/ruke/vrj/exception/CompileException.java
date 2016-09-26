@@ -15,6 +15,14 @@ public class CompileException extends RuntimeException {
         this.message = message;
     }
     
+    public Token getStart() {
+        return token;
+    }
+    
+    public Token getEnd() {
+        return token;
+    }
+    
     @Override
     public String getMessage() {
         return String.format(

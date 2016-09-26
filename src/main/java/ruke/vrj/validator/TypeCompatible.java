@@ -34,6 +34,7 @@ public class TypeCompatible {
     }
     
     public boolean compatible(Symbol a, Symbol b) {
+        if (a == null || b == null) return false;
         return compatibleTable[getIndex(a)][getIndex(b)];
     }
     
