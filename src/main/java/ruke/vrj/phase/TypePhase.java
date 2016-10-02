@@ -101,4 +101,40 @@ public class TypePhase extends BasePhase {
         
         return library;
     }
+    
+    @Override
+    public Symbol visitStructDefinition(vrjParser.StructDefinitionContext ctx) {
+        Symbol struct = visit(ctx.name());
+        
+        symbols.put(symbols.getToken(ctx), struct);
+        
+        scope = struct;
+        super.visitStructDefinition(ctx);
+        scope = struct.getParent();
+        
+        return struct;
+    }
+    
+    @Override
+    public Symbol visitPropertyStatement(vrjParser.PropertyStatementContext ctx) {
+        Symbol property = visit(ctx.variableStatement());
+        
+        symbols.put(symbols.getToken(ctx), property);
+        super.visitPropertyStatement(ctx);
+        
+        return property;
+    }
+    
+    @Override
+    public Symbol visitMethodDefinition(vrjParser.MethodDefinitionContext ctx) {
+        Symbol method = visit(ctx.functionSignature());
+        
+        symbols.put(symbols.getToken(ctx), method);
+        
+        scope = method;
+        super.visitMethodDefinition(ctx);
+        scope = method.getParent();
+        
+        return method;
+    }
 }

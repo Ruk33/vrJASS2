@@ -58,4 +58,16 @@ public class TokenSymbolMap {
         return ctx.name(0).getStart();
     }
     
+    public Token getToken(vrjParser.StructDefinitionContext ctx) {
+        return ctx.name().getStart();
+    }
+    
+    public Token getToken(vrjParser.PropertyStatementContext ctx) {
+        return ctx.variableStatement().getStart();
+    }
+    
+    public Token getToken(vrjParser.MethodDefinitionContext ctx) {
+        return getToken(ctx.functionSignature());
+    }
+    
 }

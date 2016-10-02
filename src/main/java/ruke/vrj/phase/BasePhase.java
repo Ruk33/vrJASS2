@@ -67,6 +67,7 @@ public abstract class BasePhase extends vrjBaseVisitor<Symbol> {
         Symbol symbol = scope;
         
         for (TerminalNode id : ctx.ID()) {
+            if (symbol == null) break;
             symbol = symbol.resolve(scope, id.getText());
         }
         

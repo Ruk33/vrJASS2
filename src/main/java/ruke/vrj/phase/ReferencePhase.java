@@ -46,13 +46,13 @@ public class ReferencePhase extends BasePhase {
         return inRange(ctx.getStart());
     }
     
-    private void checkForVariable(Symbol symbol, Token token) {
-        if (!inRange(token)) {
+    private void checkForVariable(Symbol symbol, ParserRuleContext ctx) {
+        if (!inRange(ctx.getStart())) {
             return;
         }
         
         if (!this.validator.isVariable(symbol)) {
-            addError(token, token.getText() + " is not a variable");
+            addError(ctx.getStart(), ctx.getText() + " is not a variable");
         }
     }
     
@@ -215,7 +215,7 @@ public class ReferencePhase extends BasePhase {
             return variable.getType();
         }
     
-        checkForVariable(variable, ctx.name().getStart());
+        checkForVariable(variable, ctx.name());
         
         super.visitVariableExpression(ctx);
         
@@ -396,5 +396,42 @@ public class ReferencePhase extends BasePhase {
         scope = library.getParent();
         
         return library;
+    }
+    
+    @Override
+    public Symbol visitStructDefinition(vrjParser.StructDefinitionContext ctx) {
+        Symbol struct = visit(ctx.name());
+        
+        scope = struct;
+        super.visitStructDefinition(ctx);
+        scope = struct.getParent();
+        
+        return struct;
+    }
+    
+    @Override
+    public Symbol visitPropertyStatement(vrjParser.PropertyStatementContext ctx) {
+        Symbol property = visit(ctx.variableStatement());
+        super.visitPropertyStatement(ctx);
+        return property;
+    }
+    
+    @Override
+    public Symbol visitMethodDefinition(vrjParser.MethodDefinitionContext ctx) {
+        Symbol method = visit(ctx.functionSignature());
+    
+        if ("onInit".equals(method.getName())) {
+            checkForValidInitializer(method, ctx.functionSignature());
+            
+            if (scope instanceof ScopeSymbol) {
+                ((ScopeSymbol) scope).defineInitializer(method);
+            }
+        }
+        
+        scope = method;
+        super.visitMethodDefinition(ctx);
+        scope = method.getParent();
+        
+        return method;
     }
 }

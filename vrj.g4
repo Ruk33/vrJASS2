@@ -6,6 +6,7 @@ init: (
     globalDefinition |
     functionDefinition |
     libraryDefinition |
+    structDefinition |
     NL
 )* EOF;
 
@@ -96,8 +97,21 @@ libraryRequirementExpression: name (',' name)*;
 
 libraryDefinition:
 'library' name ('initializer' initializer=name)? ('requires' libraryRequirementExpression)? NL
-    (globalDefinition | functionDefinition | NL)*
- 'endlibrary';
+    (globalDefinition | functionDefinition | structDefinition | NL)*
+ 'endlibrary' NL;
+
+ propertyStatement:
+ visibility? variableStatement;
+
+ methodDefinition:
+ visibility? 'method' functionSignature
+    statements
+ 'endmethod' NL;
+
+structDefinition:
+visibility? 'struct' name NL
+    (propertyStatement | methodDefinition | NL)*
+'endstruct' NL;
 
 STRING: '"' .*? '"';
 REAL: [0-9]+ '.' [0-9]* | '.'[0-9]+;

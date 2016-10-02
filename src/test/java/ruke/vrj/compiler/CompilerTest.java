@@ -21,7 +21,40 @@ public class CompilerTest {
     }
     
     @Test
-    public void mustCheckVisibility() {
+    public void mustCheckVisibilityInStructs() {
+        String code = String.join("\n",
+            "struct foo",
+                "private integer a",
+                "integer b",
+                "private method privateDoSomething takes nothing returns nothing",
+                "endmethod",
+                "method doSomething takes nothing returns nothing",
+                "endmethod",
+            "endstruct",
+            "function bar takes nothing returns nothing",
+                "local foo f",
+                "set f.a = 42",
+                "set f.b = 24",
+                "call f.privateDoSomething()",
+                "call f.doSomething()",
+            "endfunction"
+        );
+    
+        Compiler compiler = compile(code);
+    
+        Assert.assertEquals(
+            "11:4 - f.a is not a variable",
+            compiler.getAllErrors().get(0).getMessage()
+        );
+    
+        Assert.assertEquals(
+            "13:5 - f.privateDoSomething is not a function",
+            compiler.getAllErrors().get(1).getMessage()
+        );
+    }
+    
+    @Test
+    public void mustCheckVisibilityOnLibraries() {
         String code = String.join("\n",
             "library A",
                 "function myPublic takes nothing returns nothing",

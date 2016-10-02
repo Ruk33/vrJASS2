@@ -15,6 +15,7 @@ public class Symbol {
     private Symbol parent;
     private String name;
     private Symbol type;
+    private HashSet<Symbol> _extends;
     private Visibility visibility;
     private HashSet<Modifier> modifiers;
     private HashMap<String, Symbol> childs;
@@ -24,6 +25,7 @@ public class Symbol {
     public Symbol(String name, Token token) {
         this.name = name;
         this.token = token;
+        _extends = new HashSet<>();
         modifiers = new HashSet<>();
         childs = new HashMap<>();
         childsByFirstLetter = new HashMap<>();
@@ -54,6 +56,15 @@ public class Symbol {
     public Symbol setType(Symbol type) {
         this.type = type;
         return this;
+    }
+    
+    public Symbol addExtends(Symbol symbol) {
+        _extends.add(symbol);
+        return this;
+    }
+    
+    public HashSet<Symbol> getExtends() {
+        return _extends;
     }
     
     public void setVisibility(Visibility visibility) {
@@ -109,7 +120,9 @@ public class Symbol {
     public Symbol resolve(Symbol requester, String name) {
         Symbol resolved = null;
         
-        if (this.getName().equals(name)) {
+        if (this.getType().hasModifier(Modifier.STRUCT) && this != this.getType()) {
+            resolved = this.getType().resolve(requester, name);
+        } else if (this.getName().equals(name)) {
             resolved = this;
         } else {
             resolved = this.childs.get(name);

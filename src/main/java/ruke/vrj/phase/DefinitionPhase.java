@@ -138,7 +138,7 @@ public class DefinitionPhase extends BasePhase {
         Symbol library = scope.resolve(name);
         
         if (library == null) {
-            library = new ScopeSymbol(name, ctx.name(0).getStart());
+            library = new ScopeSymbol(name, symbols.getToken(ctx));
             
             library.addModifier(Modifier.LIBRARY);
             
@@ -151,5 +151,56 @@ public class DefinitionPhase extends BasePhase {
         scope = library.getParent();
         
         return library;
+    }
+    
+    @Override
+    public Symbol visitStructDefinition(vrjParser.StructDefinitionContext ctx) {
+        String name = ctx.name().getText();
+    
+        checkAlreadyDefined(name, ctx.name().getStart(), "Struct");
+        
+        Symbol struct = scope.resolve(name);
+        
+        if (struct == null) {
+            struct = new ScopeSymbol(name, symbols.getToken(ctx));
+            
+            struct.addModifier(Modifier.TYPE);
+            struct.addModifier(Modifier.STRUCT);
+    
+            scope.define(struct);
+            symbols.put(struct);
+        }
+    
+        scope = struct;
+        super.visitStructDefinition(ctx);
+        scope = struct.getParent();
+        
+        return struct;
+    }
+    
+    @Override
+    public Symbol visitPropertyStatement(vrjParser.PropertyStatementContext ctx) {
+        Symbol property = visit(ctx.variableStatement());
+        
+        if (ctx.visibility() != null && "private".equals(ctx.visibility().getText())) {
+            property.setVisibility(Visibility.PRIVATE);
+        }
+        
+        return property;
+    }
+    
+    @Override
+    public Symbol visitMethodDefinition(vrjParser.MethodDefinitionContext ctx) {
+        Symbol method = visit(ctx.functionSignature());
+        
+        if (ctx.visibility() != null && "private".equals(ctx.visibility().getText())) {
+            method.setVisibility(Visibility.PRIVATE);
+        }
+        
+        scope = method;
+        visit(ctx.statements());
+        scope = method.getParent();
+        
+        return method;
     }
 }

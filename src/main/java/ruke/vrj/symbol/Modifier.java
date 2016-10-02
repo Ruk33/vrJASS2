@@ -10,5 +10,6 @@ public enum Modifier {
     VARIABLE,
     FUNCTION,
     TYPE,
-    LIBRARY
+    LIBRARY,
+    STRUCT
 }
