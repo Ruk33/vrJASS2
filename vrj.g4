@@ -109,7 +109,7 @@ libraryDefinition:
  'endmethod' NL;
 
 structDefinition:
-visibility? 'struct' name NL
+visibility? 'struct' name ('extends' 'array')? NL
     (propertyStatement | methodDefinition | NL)*
 'endstruct' NL;
 
