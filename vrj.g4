@@ -5,6 +5,7 @@ init: (
     nativeDefinition |
     globalDefinition |
     functionDefinition |
+    libraryDefinition |
     NL
 )* EOF;
 
@@ -88,6 +89,13 @@ functionDefinition:
 'function' functionSignature
     statements
 'endfunction' NL;
+
+libraryRequirementExpression: name (',' name)*;
+
+libraryDefinition:
+'library' name ('initializer' initializer=name)? ('requires' libraryRequirementExpression)? NL
+    (globalDefinition | functionDefinition | NL)*
+ 'endlibrary';
 
 STRING: '"' .*? '"';
 REAL: [0-9]+ '.' [0-9]* | '.'[0-9]+;

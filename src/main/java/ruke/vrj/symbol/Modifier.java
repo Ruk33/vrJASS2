@@ -9,5 +9,6 @@ public enum Modifier {
     ARRAY,
     VARIABLE,
     FUNCTION,
-    TYPE
+    TYPE,
+    LIBRARY
 }

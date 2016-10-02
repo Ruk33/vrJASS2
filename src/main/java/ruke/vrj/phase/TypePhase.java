@@ -88,4 +88,17 @@ public class TypePhase extends BasePhase {
         
         return function;
     }
+    
+    @Override
+    public Symbol visitLibraryDefinition(vrjParser.LibraryDefinitionContext ctx) {
+        Symbol library = visit(ctx.name(0));
+    
+        symbols.put(symbols.getToken(ctx), library);
+    
+        scope = library;
+        super.visitLibraryDefinition(ctx);
+        scope = library.getParent();
+        
+        return library;
+    }
 }

@@ -305,4 +305,16 @@ public interface vrjVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitFunctionDefinition(vrjParser.FunctionDefinitionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link vrjParser#libraryRequirementExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLibraryRequirementExpression(vrjParser.LibraryRequirementExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link vrjParser#libraryDefinition}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLibraryDefinition(vrjParser.LibraryDefinitionContext ctx);
 }

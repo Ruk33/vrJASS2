@@ -54,4 +54,8 @@ public class TokenSymbolMap {
         return ctx.name().getStart();
     }
     
+    public Token getToken(vrjParser.LibraryDefinitionContext ctx) {
+        return ctx.name(0).getStart();
+    }
+    
 }

@@ -3,6 +3,8 @@ package ruke.vrj.phase;
 import org.antlr.v4.runtime.ParserRuleContext;
 import ruke.vrj.antlr.vrjParser;
 import ruke.vrj.symbol.FunctionSymbol;
+import ruke.vrj.symbol.Modifier;
+import ruke.vrj.symbol.ScopeSymbol;
 import ruke.vrj.symbol.Symbol;
 import ruke.vrj.validator.Validator;
 import org.antlr.v4.runtime.Token;
@@ -110,6 +112,20 @@ public class ReferencePhase extends BasePhase {
         
         if (!this.validator.isValidType(symbol)) {
             addError(token, symbol.getName() + " is not a valid type");
+        }
+    }
+    
+    private void checkForValidInitializer(Symbol symbol, Token token) {
+        if (!inRange(token)) {
+            return;
+        }
+        
+        checkForFunction(symbol, token);
+        
+        if (symbol instanceof FunctionSymbol) {
+            if (!((FunctionSymbol) symbol).getParams().isEmpty()) {
+                addError(token, "Initializers must not take any parameters");
+            }
         }
     }
     
@@ -350,5 +366,35 @@ public class ReferencePhase extends BasePhase {
         }
         
         return super.visitReturn(ctx);
+    }
+    
+    @Override
+    public Symbol visitLibraryDefinition(vrjParser.LibraryDefinitionContext ctx) {
+        Symbol library = visit(ctx.name(0));
+        
+        scope = library;
+        
+        if (ctx.initializer != null) {
+            Symbol initializer = visit(ctx.initializer);
+            
+            checkForValidInitializer(initializer, ctx.initializer.getStart());
+            
+            if (library instanceof ScopeSymbol) {
+                ((ScopeSymbol) library).defineInitializer(initializer);
+            }
+        }
+        
+        if (ctx.libraryRequirementExpression() != null) {
+            for (vrjParser.NameContext requirement : ctx.libraryRequirementExpression().name()) {
+                if (!visit(requirement).hasModifier(Modifier.LIBRARY)) {
+                    addError(requirement.getStart(), requirement.getText() + " is not a library");
+                }
+            }
+        }
+        
+        super.visitLibraryDefinition(ctx);
+        scope = library.getParent();
+        
+        return library;
     }
 }

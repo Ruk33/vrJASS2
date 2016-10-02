@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.Token;
 import ruke.vrj.antlr.vrjParser;
 import ruke.vrj.symbol.FunctionSymbol;
 import ruke.vrj.symbol.Modifier;
+import ruke.vrj.symbol.ScopeSymbol;
 import ruke.vrj.symbol.Symbol;
 
 /**
@@ -125,5 +126,29 @@ public class DefinitionPhase extends BasePhase {
         variable.addModifier(Modifier.LOCAL);
         
         return variable;
+    }
+    
+    @Override
+    public Symbol visitLibraryDefinition(vrjParser.LibraryDefinitionContext ctx) {
+        String name = ctx.name(0).getText();
+        
+        checkAlreadyDefined(name, ctx.name(0).getStart(), "Library");
+        
+        Symbol library = scope.resolve(name);
+        
+        if (library == null) {
+            library = new ScopeSymbol(name, ctx.name(0).getStart());
+            
+            library.addModifier(Modifier.LIBRARY);
+            
+            scope.define(library);
+            symbols.put(library);
+        }
+        
+        scope = library;
+        super.visitLibraryDefinition(ctx);
+        scope = library.getParent();
+        
+        return library;
     }
 }

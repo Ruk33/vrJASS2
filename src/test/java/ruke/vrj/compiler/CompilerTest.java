@@ -21,6 +21,57 @@ public class CompilerTest {
     }
     
     @Test
+    public void mustRequireValidLibrary() {
+        String code = String.join("\n",
+            "globals",
+                "integer B",
+            "endglobals",
+            "library A requires B, C, D",
+            "endlibrary",
+            "library C",
+            "endlibrary"
+        );
+    
+        Compiler compiler = compile(code);
+    
+        Assert.assertEquals(
+            "4:25 - D is not a library",
+            compiler.getAllErrors().get(0).getMessage()
+        );
+    
+        Assert.assertEquals(
+            "4:25 - D is not defined",
+            compiler.getAllErrors().get(1).getMessage()
+        );
+    
+        Assert.assertEquals(
+            "4:19 - B is not a library",
+            compiler.getAllErrors().get(2).getMessage()
+        );
+    }
+    
+    @Test
+    public void mustDeclareValidLibraryInitializer() {
+        String code = String.join("\n",
+            "library A initializer InitA",
+                "function InitA takes integer i returns nothing",
+                "endfunction",
+            "endlibrary",
+            "library B initializer InitB",
+                "function InitB takes nothing returns nothing",
+                "endfunction",
+            "endlibrary"
+        );
+    
+        Compiler compiler = compile(code);
+    
+        Assert.assertEquals(
+            "1:22 - Initializers must not take any parameters",
+            compiler.getAllErrors().get(0).getMessage()
+        );
+    }
+    
+    @Test
     @Ignore
     public void mustTranslate() {
         String code = String.join("\n",
