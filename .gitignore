@@ -3,3 +3,4 @@
 build
 out
 src/main/java/ruke/vrj/phase/SecretEggPhase.java
+src/main/java/ruke/vrj/antlr/
