@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import ruke.vrj.compiler.Compiler;
 import ruke.vrj.exception.CompileException;
 import ruke.vrj.lib.DefinitionPhaseResult;
+import ruke.vrj.symbol.Modifier;
 import ruke.vrj.symbol.Symbol;
 
 import java.io.InputStream;
@@ -23,6 +24,9 @@ public class LanguageServer {
     private Compiler compiler = new Compiler();
     private HashMap<String, DefinitionPhaseResult> definitions = new HashMap<>();
     
+    public final static int FUNCTION_TYPE = 3;
+    public final static int VARIABLE_TYPE = 6;
+    
     private JsonObject handleEdit(JsonObject data) {
         JsonObject result = Json.object();
         JsonArray errors = Json.array().asArray();
@@ -30,8 +34,15 @@ public class LanguageServer {
         String uri = data.getString("uri", "");
         String code = data.getString("content", "") + "\n";
         
+        Symbol natives = null;
+        
+        if (definitions.containsKey("common.j")) {
+            natives = definitions.get("common.j").getScope();
+        }
+        
         DefinitionPhaseResult definition = compiler.runDefinitionPhase(
-            new ANTLRInputStream(code)
+            new ANTLRInputStream(code),
+            natives
         );
         
         definitions.put(uri, definition);
@@ -88,8 +99,18 @@ public class LanguageServer {
             data.getInt("char", -1)
         );
         
+        JsonObject suggestionJson;
+        
         for (Symbol suggestion : symbols) {
-            suggestions.add(Json.object().add("label", suggestion.getName()));
+            suggestionJson = Json.object().add("label", suggestion.getName());
+    
+            if (suggestion.hasModifier(Modifier.FUNCTION)) {
+                suggestionJson.add("kind", FUNCTION_TYPE);
+            } else if (suggestion.hasModifier(Modifier.VARIABLE)) {
+                suggestionJson.add("kind", VARIABLE_TYPE);
+            }
+            
+            suggestions.add(suggestionJson);
         }
         
         return result;
@@ -118,8 +139,26 @@ public class LanguageServer {
         return result;
     }
     
+    public void loadNatives() {
+        try {
+            ANTLRInputStream common = new ANTLRInputStream(
+                System.class.getResourceAsStream("/common.j")
+            );
+            
+            definitions.put(
+                "common.j",
+                compiler.runDefinitionPhase(common)
+            );
+        } catch (Exception e) {
+            System.out.println("Could not load common.j");
+            e.printStackTrace();
+        }
+    }
+    
     public void listen(InputStream stream) {
         String line = "";
+        
+        loadNatives();
     
         Scanner scanner = new Scanner(stream);
         PrintStream out = System.out;

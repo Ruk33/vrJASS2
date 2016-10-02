@@ -22,7 +22,9 @@ functionSignature: name 'takes' paramList 'returns' type NL;
 
 nativeDefinition: ('constant')? 'native' functionSignature;
 
-functionExpression: name '(' expressionList? ')';
+arguments: '(' expressionList? ')';
+
+functionExpression: name arguments;
 
 variableExpression: name ('[' expression ']')?;
 

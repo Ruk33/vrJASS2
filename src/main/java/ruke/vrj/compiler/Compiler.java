@@ -39,27 +39,35 @@ public class Compiler {
         return referenceErrors;
     }
     
-    public DefinitionPhaseResult runDefinitionPhase(ANTLRInputStream input) {
+    public DefinitionPhaseResult runDefinitionPhase(ANTLRInputStream input, Symbol injectSymbols) {
         Lexer lexer = new vrjLexer(input);
         TokenStream token = new CommonTokenStream(lexer);
         vrjParser parser = new vrjParser(token);
-    
+
         Symbol scope = new Symbol("vrj");
         TokenSymbolMap symbols = new TokenSymbolMap();
-        
+
         DefinitionPhase definitionPhase = new DefinitionPhase(scope);
         TypePhase typePhase = new TypePhase(scope);
-        
+
         definitionPhase.setTokenSymbolMap(symbols);
         typePhase.setTokenSymbolMap(symbols);
+
+        if (injectSymbols != null) {
+            scope.injectSymbol(injectSymbols);
+        }
         
         definitionPhase.visit(parser.init());
         parser.reset();
-    
+
         typePhase.visit(parser.init());
         parser.reset();
-        
+
         return new DefinitionPhaseResult(parser, scope, symbols, definitionPhase.getErrors());
+    }
+    
+    public DefinitionPhaseResult runDefinitionPhase(ANTLRInputStream input) {
+        return runDefinitionPhase(input, null);
     }
     
     public ArrayList<CompileException> runReferencePhase(DefinitionPhaseResult data, int line, int range) {
@@ -69,7 +77,18 @@ public class Compiler {
         referencePhase.visit(data.getParser().init());
         data.getParser().reset();
         
-        return new ArrayList<>(referencePhase.getErrors());
+        EggPhase eggPhase = new EggPhase(data.getScope());
+        eggPhase.setTokenSymbolMap(data.getSymbols());
+    
+        eggPhase.visit(data.getParser().init());
+        data.getParser().reset();
+    
+        ArrayList<CompileException> errors = new ArrayList<>();
+        
+        errors.addAll(referencePhase.getErrors());
+        errors.addAll(eggPhase.getErrors());
+        
+        return errors;
     }
     
     public ArrayList<Symbol> runSuggestPhase(DefinitionPhaseResult data, int line, int _char) {

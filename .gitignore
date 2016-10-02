@@ -2,3 +2,4 @@
 .idea
 build
 out
+src/main/java/ruke/vrj/phase/SecretEggPhase.java

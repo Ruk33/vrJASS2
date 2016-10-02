@@ -198,8 +198,6 @@ public class ReferencePhase extends BasePhase {
         if (!inRange(ctx)) {
             return variable.getType();
         }
-        
-        symbols.put(symbols.getToken(ctx), variable);
     
         checkForVariable(variable, ctx.name().getStart());
         
@@ -218,14 +216,12 @@ public class ReferencePhase extends BasePhase {
         
         checkForFunction(function, ctx.name().getStart());
         
-        symbols.put(symbols.getToken(ctx), function);
-        
         if (this.validator.isFunction(function)) {
             ArrayList<Symbol> params = ((FunctionSymbol) function).getParams();
             List<vrjParser.ExpressionContext> exprs = null;
             
-            if (ctx.expressionList() != null) {
-                exprs = ctx.expressionList().expression();
+            if (ctx.arguments().expressionList() != null) {
+                exprs = ctx.arguments().expressionList().expression();
             } else {
                 exprs = new ArrayList<>();
             }
@@ -274,8 +270,6 @@ public class ReferencePhase extends BasePhase {
     public Symbol visitCode(vrjParser.CodeContext ctx) {
         Symbol function = visit(ctx.name());
         
-        symbols.put(symbols.getToken(ctx), function);
-        
         checkForFunction(function, ctx.name().getStart());
         
         return natives.get("code");
@@ -295,8 +289,6 @@ public class ReferencePhase extends BasePhase {
     @Override
     public Symbol visitFunctionDefinition(vrjParser.FunctionDefinitionContext ctx) {
         Symbol function = visit(ctx.functionSignature());
-        
-        symbols.put(symbols.getToken(ctx), function);
         
         scope = function;
         super.visitFunctionDefinition(ctx);

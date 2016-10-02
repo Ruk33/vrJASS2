@@ -28,6 +28,8 @@ public class TypePhase extends BasePhase {
     @Override
     public Symbol visitFunctionDefinition(vrjParser.FunctionDefinitionContext ctx) {
         Symbol function = visit(ctx.functionSignature());
+    
+        symbols.put(symbols.getToken(ctx), function);
         
         scope = function;
         visit(ctx.statements());
@@ -42,6 +44,8 @@ public class TypePhase extends BasePhase {
         
         variable.setType(visit(ctx.type()));
         
+        super.visitVariableStatement(ctx);
+        
         return variable;
     }
     
@@ -54,4 +58,34 @@ public class TypePhase extends BasePhase {
         return variable;
     }
     
+    @Override
+    public Symbol visitVariableExpression(vrjParser.VariableExpressionContext ctx) {
+        Symbol variable = visit(ctx.name());
+        
+        symbols.put(symbols.getToken(ctx), variable);
+        
+        super.visitVariableExpression(ctx);
+        
+        return variable;
+    }
+    
+    @Override
+    public Symbol visitFunctionExpression(vrjParser.FunctionExpressionContext ctx) {
+        Symbol function = visit(ctx.name());
+        
+        symbols.put(symbols.getToken(ctx), function);
+        
+        super.visitFunctionExpression(ctx);
+        
+        return function;
+    }
+    
+    @Override
+    public Symbol visitCode(vrjParser.CodeContext ctx) {
+        Symbol function = visit(ctx.name());
+        
+        symbols.put(symbols.getToken(ctx), function);
+        
+        return function;
+    }
 }

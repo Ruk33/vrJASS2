@@ -36,6 +36,7 @@ public abstract class BasePhase extends vrjBaseVisitor<Symbol> {
         scope.define(new Symbol("code").addModifier(Modifier.TYPE));
         scope.define(new Symbol("nothing").addModifier(Modifier.TYPE));
         scope.define(new Symbol("null").addModifier(Modifier.TYPE));
+        scope.define(new Symbol("handle").addModifier(Modifier.TYPE));
     
         natives.put("integer", this.scope.resolve("integer"));
         natives.put("real", this.scope.resolve("real"));
@@ -44,6 +45,7 @@ public abstract class BasePhase extends vrjBaseVisitor<Symbol> {
         natives.put("code", this.scope.resolve("code"));
         natives.put("nothing", this.scope.resolve("nothing"));
         natives.put("null", this.scope.resolve("null"));
+        natives.put("handle", this.scope.resolve("handle"));
     }
     
     public void setTokenSymbolMap(TokenSymbolMap symbols) {
@@ -61,7 +63,13 @@ public abstract class BasePhase extends vrjBaseVisitor<Symbol> {
     
     @Override
     public Symbol visitName(vrjParser.NameContext ctx) {
-        return scope.resolve(ctx.getText());
+        Symbol symbol = scope.resolve(ctx.getText());
+        
+        if (symbol == null) {
+            symbol = natives.get("nothing");
+        }
+        
+        return symbol;
     }
     
     @Override

@@ -51,8 +51,8 @@ public class TranslatorPhase extends vrjBaseVisitor<Expression> {
     public Expression visitFunctionExpression(vrjParser.FunctionExpressionContext ctx) {
         Expression function = new FunctionExpression().setSymbol(symbols.get(symbols.getToken(ctx)));
         
-        if (ctx.expressionList() != null) {
-            function.append(visit(ctx.expressionList()));
+        if (ctx.arguments().expressionList() != null) {
+            function.append(visit(ctx.arguments().expressionList()));
         }
         
         return function;

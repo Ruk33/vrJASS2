@@ -2,6 +2,7 @@ package ruke.vrj.symbol;
 
 import org.antlr.v4.runtime.Token;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,6 +17,7 @@ public class Symbol {
     private Symbol type;
     private HashSet<Modifier> modifiers;
     private HashMap<String, Symbol> childs;
+    private HashMap<String, ArrayList<Symbol>> childsByFirstLetter;
     private Token token;
     
     public Symbol(String name, Token token) {
@@ -23,6 +25,7 @@ public class Symbol {
         this.token = token;
         modifiers = new HashSet<>();
         childs = new HashMap<>();
+        childsByFirstLetter = new HashMap<>();
     }
     
     public Symbol(String name) {
@@ -63,9 +66,32 @@ public class Symbol {
         return childs.values();
     }
     
+    public ArrayList<Symbol> getChildsByFirstLetter(String letter) {
+        ArrayList<Symbol> childs = childsByFirstLetter.get(letter.toLowerCase());
+        
+        if (childs == null) {
+            childs = new ArrayList<>();
+        }
+        
+        return childs;
+    }
+    
+    private void addChildByLetter(Symbol symbol) {
+        String firstLetter = symbol.getName().substring(0, 1).toLowerCase();
+        
+        if (!childsByFirstLetter.containsKey(firstLetter)) {
+            childsByFirstLetter.put(firstLetter, new ArrayList<>());
+        }
+        
+        childsByFirstLetter.get(firstLetter).add(symbol);
+    }
+    
     public Symbol define(Symbol symbol) {
         symbol.parent = this;
-        this.childs.put(symbol.getName(), symbol);
+        
+        childs.put(symbol.getName(), symbol);
+        addChildByLetter(symbol);
+        
         return this;
     }
     
@@ -85,5 +111,13 @@ public class Symbol {
     
     public Token getToken() {
         return token;
+    }
+    
+    public Symbol injectSymbol(Symbol symbol) {
+        for (Symbol child : symbol.childs.values()) {
+            define(child);
+        }
+        
+        return this;
     }
 }

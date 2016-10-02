@@ -30,11 +30,19 @@ public class TypeCompatible {
             case "null": return 7;
         }
         
-        return 0;
+        return -1;
     }
     
     public boolean compatible(Symbol a, Symbol b) {
         if (a == null || b == null) return false;
+        
+        int indexA = getIndex(a);
+        int indexB = getIndex(b);
+        
+        if (indexA == -1 || indexB == -1) {
+            return a.getType().getName().equals(b.getType().getName());
+        }
+        
         return compatibleTable[getIndex(a)][getIndex(b)];
     }
     

@@ -59,6 +59,12 @@ public interface vrjVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitNativeDefinition(vrjParser.NativeDefinitionContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link vrjParser#arguments}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitArguments(vrjParser.ArgumentsContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link vrjParser#functionExpression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
