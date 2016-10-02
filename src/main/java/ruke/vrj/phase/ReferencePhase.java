@@ -56,13 +56,13 @@ public class ReferencePhase extends BasePhase {
         }
     }
     
-    private void checkForFunction(Symbol symbol, Token token) {
-        if (!inRange(token)) {
+    private void checkForFunction(Symbol symbol, ParserRuleContext ctx) {
+        if (!inRange(ctx.getStart())) {
             return;
         }
         
         if (!this.validator.isFunction(symbol)) {
-            addError(token, token.getText() + " is not a function");
+            addError(ctx.getStart(), ctx.getText() + " is not a function");
         }
     }
     
@@ -115,23 +115,23 @@ public class ReferencePhase extends BasePhase {
         }
     }
     
-    private void checkForValidInitializer(Symbol symbol, Token token) {
-        if (!inRange(token)) {
+    private void checkForValidInitializer(Symbol symbol, ParserRuleContext ctx) {
+        if (!inRange(ctx.getStart())) {
             return;
         }
         
-        checkForFunction(symbol, token);
+        checkForFunction(symbol, ctx);
         
         if (symbol instanceof FunctionSymbol) {
             if (!((FunctionSymbol) symbol).getParams().isEmpty()) {
-                addError(token, "Initializers must not take any parameters");
+                addError(ctx.getStart(), "Initializers must not take any parameters");
             }
         }
     }
     
     @Override
     public Symbol visitName(vrjParser.NameContext ctx) {
-        Symbol symbol = scope.resolve(ctx.getText());
+        Symbol symbol = super.visitName(ctx);
         
         if (symbol == null) {
             addError(ctx.getStart(), ctx.getText() + " is not defined");
@@ -230,7 +230,7 @@ public class ReferencePhase extends BasePhase {
             return function.getType();
         }
         
-        checkForFunction(function, ctx.name().getStart());
+        checkForFunction(function, ctx.name());
         
         if (this.validator.isFunction(function)) {
             ArrayList<Symbol> params = ((FunctionSymbol) function).getParams();
@@ -286,7 +286,7 @@ public class ReferencePhase extends BasePhase {
     public Symbol visitCode(vrjParser.CodeContext ctx) {
         Symbol function = visit(ctx.name());
         
-        checkForFunction(function, ctx.name().getStart());
+        checkForFunction(function, ctx.name());
         
         return natives.get("code");
     }
@@ -377,7 +377,7 @@ public class ReferencePhase extends BasePhase {
         if (ctx.initializer != null) {
             Symbol initializer = visit(ctx.initializer);
             
-            checkForValidInitializer(initializer, ctx.initializer.getStart());
+            checkForValidInitializer(initializer, ctx.initializer);
             
             if (library instanceof ScopeSymbol) {
                 ((ScopeSymbol) library).defineInitializer(initializer);

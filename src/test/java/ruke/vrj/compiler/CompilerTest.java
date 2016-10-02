@@ -21,6 +21,31 @@ public class CompilerTest {
     }
     
     @Test
+    public void mustCheckVisibility() {
+        String code = String.join("\n",
+            "library A",
+                "function myPublic takes nothing returns nothing",
+                "endfunction",
+                "private function myPrivate takes nothing returns nothing",
+                "endfunction",
+            "endlibrary",
+            "library B",
+                "function init takes nothing returns nothing",
+                    "call A.myPublic()",
+                    "call A.myPrivate()",
+                "endfunction",
+            "endlibrary"
+        );
+    
+        Compiler compiler = compile(code);
+    
+        Assert.assertEquals(
+            "10:5 - A.myPrivate is not a function",
+            compiler.getAllErrors().get(0).getMessage()
+        );
+    }
+    
+    @Test
     public void mustRequireValidLibrary() {
         String code = String.join("\n",
             "globals",
@@ -40,13 +65,8 @@ public class CompilerTest {
         );
     
         Assert.assertEquals(
-            "4:25 - D is not defined",
-            compiler.getAllErrors().get(1).getMessage()
-        );
-    
-        Assert.assertEquals(
             "4:19 - B is not a library",
-            compiler.getAllErrors().get(2).getMessage()
+            compiler.getAllErrors().get(1).getMessage()
         );
     }
     
@@ -142,11 +162,6 @@ public class CompilerTest {
         Assert.assertEquals(
             compiler.getAllErrors().get(1).getMessage(),
             "2:10 - pi2 is not a variable"
-        );
-    
-        Assert.assertEquals(
-            compiler.getAllErrors().get(2).getMessage(),
-            "2:10 - pi2 is not defined"
         );
     }
     

@@ -17,6 +17,12 @@ public interface vrjVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitInit(vrjParser.InitContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link vrjParser#visibility}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVisibility(vrjParser.VisibilityContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link vrjParser#name}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

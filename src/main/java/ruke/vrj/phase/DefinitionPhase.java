@@ -2,10 +2,7 @@ package ruke.vrj.phase;
 
 import org.antlr.v4.runtime.Token;
 import ruke.vrj.antlr.vrjParser;
-import ruke.vrj.symbol.FunctionSymbol;
-import ruke.vrj.symbol.Modifier;
-import ruke.vrj.symbol.ScopeSymbol;
-import ruke.vrj.symbol.Symbol;
+import ruke.vrj.symbol.*;
 
 /**
  * Created by Ruke on 22/09/2016.
@@ -91,6 +88,10 @@ public class DefinitionPhase extends BasePhase {
     @Override
     public Symbol visitFunctionDefinition(vrjParser.FunctionDefinitionContext ctx) {
         Symbol function = visit(ctx.functionSignature());
+        
+        if (ctx.visibility() != null && "private".equals(ctx.visibility().getText())) {
+            function.setVisibility(Visibility.PRIVATE);
+        }
         
         scope = function;
         visit(ctx.statements());

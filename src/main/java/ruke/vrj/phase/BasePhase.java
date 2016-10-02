@@ -1,5 +1,6 @@
 package ruke.vrj.phase;
 
+import org.antlr.v4.runtime.tree.TerminalNode;
 import ruke.vrj.antlr.vrjBaseVisitor;
 import ruke.vrj.antlr.vrjParser;
 import ruke.vrj.exception.CompileException;
@@ -63,7 +64,15 @@ public abstract class BasePhase extends vrjBaseVisitor<Symbol> {
     
     @Override
     public Symbol visitName(vrjParser.NameContext ctx) {
-        Symbol symbol = scope.resolve(ctx.getText());
+        Symbol symbol = scope;
+        
+        for (TerminalNode id : ctx.ID()) {
+            symbol = symbol.resolve(scope, id.getText());
+        }
+        
+        if (symbol == scope) {
+            symbol = null;
+        }
         
         if (symbol == null) {
             symbol = natives.get("nothing");

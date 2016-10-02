@@ -9,7 +9,9 @@ init: (
     NL
 )* EOF;
 
-name: ID;
+visibility: 'private' | 'public';
+
+name: ID ('.' ID)*;
 
 type: ID | 'nothing';
 
@@ -86,7 +88,7 @@ loopStatement #IgnoreLoop;
 statements: (statement | NL)*;
 
 functionDefinition:
-'function' functionSignature
+visibility? 'function' functionSignature
     statements
 'endfunction' NL;
 

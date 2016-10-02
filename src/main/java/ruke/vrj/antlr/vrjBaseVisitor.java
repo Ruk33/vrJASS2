@@ -24,6 +24,13 @@ public class vrjBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements vr
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitVisibility(vrjParser.VisibilityContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitName(vrjParser.NameContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}

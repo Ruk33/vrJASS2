@@ -15,6 +15,7 @@ public class Symbol {
     private Symbol parent;
     private String name;
     private Symbol type;
+    private Visibility visibility;
     private HashSet<Modifier> modifiers;
     private HashMap<String, Symbol> childs;
     private HashMap<String, ArrayList<Symbol>> childsByFirstLetter;
@@ -26,6 +27,8 @@ public class Symbol {
         modifiers = new HashSet<>();
         childs = new HashMap<>();
         childsByFirstLetter = new HashMap<>();
+        
+        setVisibility(Visibility.PUBLIC);
     }
     
     public Symbol(String name) {
@@ -51,6 +54,14 @@ public class Symbol {
     public Symbol setType(Symbol type) {
         this.type = type;
         return this;
+    }
+    
+    public void setVisibility(Visibility visibility) {
+        this.visibility = visibility;
+    }
+    
+    public Visibility getVisibility() {
+        return visibility;
     }
     
     public Symbol addModifier(Modifier modifier) {
@@ -95,18 +106,34 @@ public class Symbol {
         return this;
     }
     
-    public Symbol resolve(String name) {
-        if (this.getName().equals(name)) {
-            return this;
-        }
+    public Symbol resolve(Symbol requester, String name) {
+        Symbol resolved = null;
         
-        Symbol resolved = this.childs.get(name);
+        if (this.getName().equals(name)) {
+            resolved = this;
+        } else {
+            resolved = this.childs.get(name);
+        }
+    
+        if (resolved != null) {
+            if (resolved.getVisibility() == Visibility.PUBLIC) {
+                return resolved;
+            } else if (resolved.getParent() == requester) {
+                return resolved;
+            }
+            
+            return null;
+        }
         
         if (resolved == null && this.getParent() != null) {
             return this.getParent().resolve(name);
         }
-        
+    
         return resolved;
+    }
+    
+    public Symbol resolve(String name) {
+        return resolve(this, name);
     }
     
     public Token getToken() {
