@@ -7,8 +7,8 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import ruke.vrj.compiler.Compiler;
 import ruke.vrj.exception.CompileException;
 import ruke.vrj.lib.DefinitionPhaseResult;
-import ruke.vrj.symbol.Modifier;
 import ruke.vrj.symbol.Symbol;
+import ruke.vrj.symbol.SymbolType;
 
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -104,9 +104,9 @@ public class LanguageServer {
         for (Symbol suggestion : symbols) {
             suggestionJson = Json.object().add("label", suggestion.getName());
     
-            if (suggestion.hasModifier(Modifier.FUNCTION)) {
+            if (suggestion.getSymbolType() == SymbolType.FUNCTION) {
                 suggestionJson.add("kind", FUNCTION_TYPE);
-            } else if (suggestion.hasModifier(Modifier.VARIABLE)) {
+            } else if (suggestion.getSymbolType() == SymbolType.VARIABLE) {
                 suggestionJson.add("kind", VARIABLE_TYPE);
             }
             
