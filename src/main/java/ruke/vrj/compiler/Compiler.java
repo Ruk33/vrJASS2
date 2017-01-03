@@ -10,6 +10,7 @@ import ruke.vrj.exception.CompileException;
 import ruke.vrj.lib.DefinitionPhaseResult;
 import ruke.vrj.lib.TokenSymbolMap;
 import ruke.vrj.phase.*;
+import ruke.vrj.symbol.MainScope;
 import ruke.vrj.symbol.Symbol;
 
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public class Compiler {
         TokenStream token = new CommonTokenStream(lexer);
         vrjParser parser = new vrjParser(token);
 
-        Symbol scope = new Symbol("vrj");
+        Symbol scope = new MainScope();
         TokenSymbolMap symbols = new TokenSymbolMap();
 
         DefinitionPhase definitionPhase = new DefinitionPhase(scope);
@@ -117,10 +118,14 @@ public class Compiler {
         referenceErrors = runReferencePhase(data, -1, -1);
         
         if (definitionErrors.isEmpty() && referenceErrors.isEmpty()) {
-            return runTranslatePhase(data);
+            //return runTranslatePhase(data);
         }
         
         return null;
+    }
+    
+    public String compile(String code) {
+        return compile(new ANTLRInputStream(code + "\n"));
     }
     
 }
