@@ -3,9 +3,10 @@ package ruke.vrj.phase;
 import org.antlr.v4.runtime.ParserRuleContext;
 import ruke.vrj.antlr.vrjParser;
 import ruke.vrj.lib.LevenshteinDistance;
-import ruke.vrj.symbol.FunctionSymbol;
 import ruke.vrj.symbol.Modifier;
+import ruke.vrj.symbol.ScopeSymbol;
 import ruke.vrj.symbol.Symbol;
+import ruke.vrj.symbol.SymbolType;
 import ruke.vrj.validator.TypeCompatible;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class SuggestionPhase extends BasePhase {
     
     private Symbol type;
     private Modifier modifier;
+    private SymbolType symbolType;
     
     private int line;
     private int _char;
@@ -131,11 +133,15 @@ public class SuggestionPhase extends BasePhase {
                 }
                 
                 if (modifier != null && !child.hasModifier(modifier)) {
+                    //continue;
+                }
+                
+                if (symbolType != null && child.getSymbolType() != symbolType) {
                     continue;
                 }
                 
                 if (type != null) {
-                    if (child.hasModifier(Modifier.TYPE)) continue;
+                    if (child.getSymbolType() != SymbolType.TYPE) continue;
                     if (type == child) continue;
                     if (!typeCompatible.compatible(type, child)) continue;
                 }
@@ -171,7 +177,7 @@ public class SuggestionPhase extends BasePhase {
     
         if (inCursorRange(ctx)) {
             type = null;
-            modifier = Modifier.TYPE;
+            symbolType = SymbolType.TYPE;
     
             fillSuggestions(null);
         }
@@ -186,7 +192,7 @@ public class SuggestionPhase extends BasePhase {
         }
         
         if (inCursorRange(ctx.name())) {
-            modifier = Modifier.FUNCTION;
+            symbolType = SymbolType.FUNCTION;
             fillSuggestions(ctx.name().getText());
             return null;
         }
@@ -194,8 +200,8 @@ public class SuggestionPhase extends BasePhase {
         Symbol function = symbols.get(symbols.getToken(ctx));
         ArrayList<Symbol> params;
         
-        if (function instanceof FunctionSymbol) {
-            params = ((FunctionSymbol) function).getParams();
+        if (function instanceof ScopeSymbol) {
+            params = ((ScopeSymbol) function).getParams();
             
             if (params.size() == 0) {
                 return null;

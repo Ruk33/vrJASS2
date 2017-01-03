@@ -132,7 +132,7 @@ public class TypePhase extends BasePhase {
         symbols.put(symbols.getToken(ctx), method);
         
         scope = method;
-        super.visitMethodDefinition(ctx);
+        visit(ctx.statements());
         scope = method.getParent();
         
         return method;

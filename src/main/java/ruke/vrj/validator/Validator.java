@@ -1,7 +1,7 @@
 package ruke.vrj.validator;
 
-import ruke.vrj.symbol.Modifier;
 import ruke.vrj.symbol.Symbol;
+import ruke.vrj.symbol.SymbolType;
 
 /**
  * Created by Ruke on 23/09/2016.
@@ -11,7 +11,11 @@ public class Validator {
     TypeCompatible typeChecker = new TypeCompatible();
     
     public boolean isVariable(Symbol symbol) {
-        return symbol.hasModifier(Modifier.VARIABLE);
+        return symbol.getSymbolType() == SymbolType.VARIABLE;
+    }
+    
+    public boolean isStruct(Symbol symbol) {
+        return symbol.getSymbolType() == SymbolType.STRUCT;
     }
     
     public boolean isNumber(Symbol symbol) {
@@ -24,7 +28,7 @@ public class Validator {
     }
     
     public boolean isFunction(Symbol symbol) {
-        return symbol.hasModifier(Modifier.FUNCTION);
+        return symbol.getSymbolType() == SymbolType.FUNCTION;
     }
     
     public boolean isNull(Symbol symbol) {
@@ -32,7 +36,10 @@ public class Validator {
     }
     
     public boolean isValidType(Symbol symbol) {
-        return symbol.hasModifier(Modifier.TYPE) && !this.isNull(symbol);
+        boolean isType = symbol.getSymbolType() == SymbolType.TYPE;
+        boolean isStruct = symbol.getSymbolType() == SymbolType.STRUCT;
+        
+        return (isType || isStruct) && !this.isNull(symbol);
     }
     
     public boolean isTypeCompatible(Symbol a, Symbol b) {

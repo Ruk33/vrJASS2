@@ -1,6 +1,5 @@
 package ruke.vrj.phase;
 
-import org.antlr.v4.runtime.Token;
 import ruke.vrj.antlr.vrjParser;
 import ruke.vrj.symbol.*;
 
@@ -13,25 +12,22 @@ public class DefinitionPhase extends BasePhase {
         super(scope);
     }
     
-    private void checkAlreadyDefined(String name, Token token, String type) {
-        if (scope.resolve(name) != null) {
-            addError(token, type + " " + name + " is already defined");
-        }
+    @Override
+    public Symbol visitNativeDefinition(vrjParser.NativeDefinitionContext ctx) {
+        return visit(ctx.functionSignature());
     }
     
     @Override
     public Symbol visitTypeDefinition(vrjParser.TypeDefinitionContext ctx) {
         String name = ctx.typeName.getText();
         
-        checkAlreadyDefined(name, ctx.getStart(), "Type");
+        Symbol type = type = new Symbol(name);
+        type.setSymbolType(SymbolType.TYPE);
         
-        Symbol type = scope.resolve(name);
-    
-        if (type == null) {
-            type = new Symbol(name);
-            type.addModifier(Modifier.TYPE);
-            
+        try {
             scope.define(type);
+        } catch (Exception e) {
+            addError(ctx.typeName.getStart(), String.format("Type %s is already defined", name));
         }
         
         return type;
@@ -40,22 +36,20 @@ public class DefinitionPhase extends BasePhase {
     @Override
     public Symbol visitParam(vrjParser.ParamContext ctx) {
         String name = ctx.name().getText();
-    
-        checkAlreadyDefined(name, ctx.getStart(), "Variable");
         
-        Symbol param = scope.resolve(name);
+        Symbol param = new Symbol(name, symbols.getToken(ctx));
         
-        if (param == null) {
-            param = new Symbol(name, symbols.getToken(ctx));
+        param.setVisibility(Visibility.PRIVATE);
+        param.setSymbolType(SymbolType.VARIABLE);
+        param.addModifier(Modifier.LOCAL);
     
-            param.addModifier(Modifier.LOCAL);
-            param.addModifier(Modifier.VARIABLE);
-    
-            if (scope instanceof FunctionSymbol) {
-                ((FunctionSymbol) scope).defineParam(param);
-                symbols.put(param);
-            }
+        try {
+            ((ScopeSymbol) scope).defineParam(param);
+        } catch (Exception e) {
+            addError(ctx.getStart(), String.format("Param %s is already defined", name));
         }
+        
+        symbols.put(param);
         
         return param;
     }
@@ -63,24 +57,18 @@ public class DefinitionPhase extends BasePhase {
     @Override
     public Symbol visitFunctionSignature(vrjParser.FunctionSignatureContext ctx) {
         String name = ctx.name().getText();
-    
-        checkAlreadyDefined(name, ctx.getStart(), "Function");
         
-        Symbol function = scope.resolve(name);
+        Symbol function = new ScopeSymbol(name, symbols.getToken(ctx));
+        function.setSymbolType(SymbolType.FUNCTION);
+        
+        symbols.put(function);
     
-        if (function instanceof FunctionSymbol == false) {
-            function = new FunctionSymbol(name, symbols.getToken(ctx));
-            
-            function.addModifier(Modifier.FUNCTION);
-    
-            scope.define(function);
-            symbols.put(function);
-        }
+        Symbol prevScope = scope;
     
         scope = function;
         visit(ctx.paramList());
         visit(ctx.type());
-        scope = function.getParent();
+        scope = prevScope;
         
         return function;
     }
@@ -91,6 +79,15 @@ public class DefinitionPhase extends BasePhase {
         
         if (ctx.visibility() != null && "private".equals(ctx.visibility().getText())) {
             function.setVisibility(Visibility.PRIVATE);
+        }
+
+        try {
+            scope.define(function);
+        } catch (Exception e) {
+            addError(
+                ctx.getStart(),
+                String.format("Function %s is already defined", function.getName())
+            );
         }
         
         scope = function;
@@ -104,17 +101,34 @@ public class DefinitionPhase extends BasePhase {
     public Symbol visitVariableStatement(vrjParser.VariableStatementContext ctx) {
         String name = ctx.name().getText();
         
-        checkAlreadyDefined(name, ctx.getStart(), "Variable");
+        Symbol variable = new Symbol(name, symbols.getToken(ctx));
+        variable.setSymbolType(SymbolType.VARIABLE);
         
-        Symbol variable = scope.resolve(name);
-        
-        if (variable == null) {
-            variable = new Symbol(name, symbols.getToken(ctx));
-            
-            variable.addModifier(Modifier.VARIABLE);
+        if (ctx.array != null) {
+            variable.addModifier(Modifier.ARRAY);
+        }
     
+        try {
             scope.define(variable);
-            symbols.put(variable);
+        } catch (Exception e) {
+            addError(ctx.name().getStart(), String.format("Variable %s is already defined", name));
+        }
+        
+        symbols.put(variable);
+        
+        return variable;
+    }
+    
+    @Override
+    public Symbol visitGlobalVariable(vrjParser.GlobalVariableContext ctx) {
+        Symbol variable = visit(ctx.variableStatement());
+    
+        if (ctx.visibility() != null && "private".equals(ctx.visibility().getText())) {
+            variable.setVisibility(Visibility.PRIVATE);
+        }
+        
+        if (ctx.constant != null) {
+            variable.addModifier(Modifier.CONSTANT);
         }
         
         return variable;
@@ -123,7 +137,6 @@ public class DefinitionPhase extends BasePhase {
     @Override
     public Symbol visitLocalVariable(vrjParser.LocalVariableContext ctx) {
         Symbol variable = visit(ctx.variableStatement());
-        
         variable.addModifier(Modifier.LOCAL);
         
         return variable;
@@ -133,22 +146,22 @@ public class DefinitionPhase extends BasePhase {
     public Symbol visitLibraryDefinition(vrjParser.LibraryDefinitionContext ctx) {
         String name = ctx.name(0).getText();
         
-        checkAlreadyDefined(name, ctx.name(0).getStart(), "Library");
-        
-        Symbol library = scope.resolve(name);
-        
-        if (library == null) {
-            library = new ScopeSymbol(name, symbols.getToken(ctx));
-            
-            library.addModifier(Modifier.LIBRARY);
-            
+        Symbol library = new ScopeSymbol(name, symbols.getToken(ctx));
+        library.setSymbolType(SymbolType.LIBRARY);
+    
+        try {
             scope.define(library);
-            symbols.put(library);
+        } catch (Exception e) {
+            addError(ctx.name(0).getStart(), String.format("Library %s is already defined", name));
         }
         
+        symbols.put(library);
+        
+        Symbol prevScope = scope;
+        
         scope = library;
-        super.visitLibraryDefinition(ctx);
-        scope = library.getParent();
+        visit(ctx.libraryBody());
+        scope = prevScope;
         
         return library;
     }
@@ -156,20 +169,17 @@ public class DefinitionPhase extends BasePhase {
     @Override
     public Symbol visitStructDefinition(vrjParser.StructDefinitionContext ctx) {
         String name = ctx.name().getText();
-    
-        checkAlreadyDefined(name, ctx.name().getStart(), "Struct");
         
-        Symbol struct = scope.resolve(name);
-        
-        if (struct == null) {
-            struct = new ScopeSymbol(name, symbols.getToken(ctx));
-            
-            struct.addModifier(Modifier.TYPE);
-            struct.addModifier(Modifier.STRUCT);
+        Symbol struct = new StructSymbol(name, symbols.getToken(ctx));
+        struct.setSymbolType(SymbolType.STRUCT);
     
+        try {
             scope.define(struct);
-            symbols.put(struct);
+        } catch (Exception e) {
+            addError(ctx.name().getStart(), String.format("Struct %s is already defined", name));
         }
+        
+        symbols.put(struct);
     
         scope = struct;
         super.visitStructDefinition(ctx);
@@ -186,6 +196,10 @@ public class DefinitionPhase extends BasePhase {
             property.setVisibility(Visibility.PRIVATE);
         }
         
+        if (ctx.sstatic != null) {
+            property.addModifier(Modifier.STATIC);
+        }
+        
         return property;
     }
     
@@ -197,9 +211,28 @@ public class DefinitionPhase extends BasePhase {
             method.setVisibility(Visibility.PRIVATE);
         }
         
+        if (ctx.sstatic != null) {
+            method.addModifier(Modifier.STATIC);
+        }
+        
+        if (ctx.operator != null) {
+            method.setSymbolType(SymbolType.OPERATOR_OVERLOADING);
+        }
+
+        try {
+            scope.define(method);
+        } catch (Exception e) {
+            addError(
+                ctx.getStart(),
+                String.format("Method %s is already defined", method.getName())
+            );
+        }
+        
+        Symbol prevScope = scope;
+        
         scope = method;
         visit(ctx.statements());
-        scope = method.getParent();
+        scope = prevScope;
         
         return method;
     }

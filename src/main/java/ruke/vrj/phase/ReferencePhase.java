@@ -1,13 +1,16 @@
 package ruke.vrj.phase;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import ruke.vrj.antlr.vrjParser;
-import ruke.vrj.symbol.FunctionSymbol;
+import ruke.vrj.resolution.NonStaticMemberResolution;
+import ruke.vrj.resolution.Resolution;
+import ruke.vrj.resolution.StaticMemberResolution;
 import ruke.vrj.symbol.Modifier;
 import ruke.vrj.symbol.ScopeSymbol;
 import ruke.vrj.symbol.Symbol;
+import ruke.vrj.symbol.SymbolType;
 import ruke.vrj.validator.Validator;
-import org.antlr.v4.runtime.Token;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +49,101 @@ public class ReferencePhase extends BasePhase {
         return inRange(ctx.getStart());
     }
     
+    private void checkForValidEqualityExpression(Symbol a, Symbol b, ParserRuleContext ctx) {
+        if (!inRange(ctx)) {
+            return;
+        }
+        
+        if (!this.validator.isTypeCompatible(a, b)) {
+            addError(
+                ctx.getStart(),
+                "Comparing two variables of different primitive types (expect real and integer) is not allowed"
+            );
+        }
+    }
+    
+    private void checkForValidSizeExpression(Symbol a, Symbol b, ParserRuleContext ctx) {
+        if (!inRange(ctx)) {
+            return;
+        }
+        
+        boolean aIsNumeric = this.validator.isNumber(a);
+        boolean bIsNumeric = this.validator.isNumber(b);
+        
+        if (!aIsNumeric || !bIsNumeric) {
+            addError(
+                ctx.getStart(),
+                "Comparing the order/size of 2 variables only works on reals and integers"
+            );
+        }
+    }
+    
+    private boolean scopeHasReturn(vrjParser.StatementsContext stats) {
+        for (vrjParser.StatementContext stat : stats.statement()) {
+            if (stat.returnStatement() != null) {
+                return true;
+            } else if (stat.ifStatement() != null) {
+                if (stat.ifStatement().elseStatement() != null) {
+                    boolean ifReturns = scopeHasReturn(stat.ifStatement().statements());
+                    boolean elseIfReturns = true;
+                    boolean elseReturns = scopeHasReturn(stat.ifStatement().elseStatement().statements());
+                
+                    for (vrjParser.ElseIfStatementContext elseif : stat.ifStatement().elseIfStatement()) {
+                        if (!scopeHasReturn(elseif.statements())) {
+                            elseIfReturns = false;
+                            break;
+                        }
+                    }
+                
+                    if (ifReturns && elseIfReturns && elseReturns) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+    
+    private void checkMissingReturn(Symbol function, vrjParser.StatementsContext stats) {
+        if (function.getType() == function || function.getType() == scope.resolve("nothing")) {
+            return;
+        }
+        
+        if (!scopeHasReturn(stats)) {
+            addError(function.getToken(), "Missing return");
+        }
+    }
+    
+    private void checkLibraryRequirement(Symbol requirement, ParserRuleContext ctx) {
+        if (requirement.getName().equals("nothing")) {
+            return;
+        }
+        
+        if (requirement.getSymbolType() != SymbolType.LIBRARY) {
+            addError(
+                ctx.getStart(),
+                String.format("%s is not a library", ctx.getText())
+            );
+        }
+    }
+    
+    private void checkForDefined(Symbol symbol, ParserRuleContext ctx) {
+        if (!inRange(ctx.getStart())) {
+            return;
+        }
+    
+        if (symbol.getName().equals("nothing")) {
+            addError(ctx.getStart(), ctx.getText() + " is not defined");
+        }
+    }
+    
     private void checkForVariable(Symbol symbol, ParserRuleContext ctx) {
         if (!inRange(ctx.getStart())) {
+            return;
+        }
+        
+        if (symbol.getName().equals("nothing")) {
             return;
         }
         
@@ -60,6 +156,10 @@ public class ReferencePhase extends BasePhase {
         if (!inRange(ctx.getStart())) {
             return;
         }
+    
+        if (symbol.getName().equals("nothing")) {
+            return;
+        }
         
         if (!this.validator.isFunction(symbol)) {
             addError(ctx.getStart(), ctx.getText() + " is not a function");
@@ -68,6 +168,14 @@ public class ReferencePhase extends BasePhase {
     
     public void checkCompatibleType(Symbol a, Symbol b, Token token) {
         if (!inRange(token)) {
+            return;
+        }
+        
+        if (a.getName().equals("nothing")) {
+            return;
+        }
+        
+        if (b.getName().equals("nothing")) {
             return;
         }
         
@@ -90,18 +198,36 @@ public class ReferencePhase extends BasePhase {
             return;
         }
         
+        if (symbol.getName().equals("nothing")) {
+            return;
+        }
+        
         if (!this.validator.isNumber(symbol)) {
             addError(token, token.getText() + " is not a numeric expression");
         }
     }
     
-    private void checkForBoolean(Symbol symbol, Token token) {
-        if (!inRange(token)) {
+    private void checkForValidExtendable(Symbol symbol, ParserRuleContext ctx) {
+        if (!inRange(ctx.getStart())) {
+            return;
+        }
+        
+        if (symbol.getName().equals("nothing")) {
+            return;
+        }
+        
+        if (!this.validator.isStruct(symbol)) {
+            addError(ctx.getStart(), "Struct or 'array' expected");
+        }
+    }
+    
+    private void checkForBoolean(Symbol symbol, ParserRuleContext ctx) {
+        if (!inRange(ctx.getStart())) {
             return;
         }
         
         if (!this.validator.isBoolean(symbol)) {
-            addError(token, token.getText() + " is not a boolean expression");
+            addError(ctx.getStart(), ctx.getText() + " is not a boolean expression");
         }
     }
     
@@ -115,44 +241,137 @@ public class ReferencePhase extends BasePhase {
         }
     }
     
+    private void checkForValidCreateMethod(Symbol symbol, ParserRuleContext ctx) {
+        if (!inRange(ctx.getStart())) {
+            return;
+        }
+    
+        if (symbol.getType() != symbol.getParent().getType()) {
+            addError(
+                ctx.getStart(),
+                "Method create must return " + symbol.getParent().getName()
+            );
+        }
+        
+        if (!symbol.hasModifier(Modifier.STATIC)) {
+            addError(
+                ctx.getStart(),
+                "Method create must be static"
+            );
+        }
+    }
+    
     private void checkForValidInitializer(Symbol symbol, ParserRuleContext ctx) {
         if (!inRange(ctx.getStart())) {
             return;
         }
         
+        if (symbol.getName().equals("nothing")) {
+            return;
+        }
+        
         checkForFunction(symbol, ctx);
         
-        if (symbol instanceof FunctionSymbol) {
-            if (!((FunctionSymbol) symbol).getParams().isEmpty()) {
+        if (symbol instanceof ScopeSymbol) {
+            if (!((ScopeSymbol) symbol).getParams().isEmpty()) {
                 addError(ctx.getStart(), "Initializers must not take any parameters");
+            }
+            
+            if (symbol.getParent().getSymbolType() == SymbolType.STRUCT) {
+                if (!symbol.hasModifier(Modifier.STATIC)) {
+                    addError(ctx.getStart(), "Initializers must be static");
+                }
             }
         }
     }
     
+    public boolean checkForValidMember(Symbol scope, Symbol member, ParserRuleContext ctx) {
+        if (!member.canBeAccessBy(scope)) {
+            addError(
+                ctx.getStart(),
+                String.format(
+                    "Scope %s cannot access member %s",
+                    scope.getName(),
+                    member.getName()
+                )
+            );
+            return false;
+        }
+        
+        return true;
+    }
+    
     @Override
-    public Symbol visitName(vrjParser.NameContext ctx) {
-        Symbol symbol = super.visitName(ctx);
+    public Symbol visitNativeDefinition(vrjParser.NativeDefinitionContext ctx) {
+        return visit(ctx.functionSignature());
+    }
+    
+    @Override
+    public Symbol visitMemberExpression(vrjParser.MemberExpressionContext ctx) {
+        Symbol prevScope = scope;
+        boolean head = true;
+        
+        Resolution prevResolution;
+        Symbol prevSymbol;
+        
+        Symbol symbol = null;
+        
+        for (vrjParser.MemberContext member : ctx.member()) {
+            if (head) {
+                symbol = visit(member);
+                head = false;
+            } else {
+                prevSymbol = symbol;
+                prevResolution = symbol.getResolution();
+                
+                if (symbol.getSymbolType() == SymbolType.STRUCT) {
+                    symbol.setResolutionStrategy(new StaticMemberResolution());
+                } else {
+                    symbol.setResolutionStrategy(new NonStaticMemberResolution());
+                }
+                
+                if (scope.getSymbolType() != SymbolType.STRUCT) {
+                    scope = scope.getType();
+                }
+                
+                symbol = visit(member);
+                prevSymbol.setResolutionStrategy(prevResolution);
+    
+                if (!checkForValidMember(prevScope, symbol, member)) {
+                    symbol = null;
+                    break;
+                }
+            }
+            
+            scope = symbol;
+        }
         
         if (symbol == null) {
-            addError(ctx.getStart(), ctx.getText() + " is not defined");
-            symbol = natives.get("nothing");
+            symbol = prevScope.resolve("nothing");
         }
+        
+        scope = prevScope;
         
         return symbol;
     }
     
     @Override
+    public Symbol visitName(vrjParser.NameContext ctx) {
+        Symbol symbol = super.visitName(ctx);
+        checkForDefined(symbol, ctx);
+        return symbol;
+    }
+    
+    @Override
     public Symbol visitType(vrjParser.TypeContext ctx) {
-        Symbol type = scope.resolve(ctx.getText());
-        
-        if (type == null) {
-            addError(ctx.getStart(), ctx.getText() + " is not defined");
-            type = natives.get("nothing");
-        }
-        
+        Symbol type = super.visitType(ctx);
         checkForValidType(type, ctx.getStart());
-        
         return type;
+    }
+    
+    @Override
+    public Symbol visitGlobalVariable(vrjParser.GlobalVariableContext ctx) {
+        return visit(ctx.variableStatement());
     }
     
     @Override
@@ -163,48 +382,48 @@ public class ReferencePhase extends BasePhase {
     @Override
     public Symbol visitNegative(vrjParser.NegativeContext ctx) {
         checkForNumeric(visit(ctx.expression()), ctx.expression().getStart());
-        return natives.get("real");
+        return super.visitNegative(ctx);
     }
     
     @Override
     public Symbol visitNot(vrjParser.NotContext ctx) {
-        checkForBoolean(visit(ctx.expression()), ctx.expression().getStart());
-        return natives.get("boolean");
+        checkForBoolean(visit(ctx.expression()), ctx.expression());
+        return super.visitNot(ctx);
     }
     
     @Override
     public Symbol visitMod(vrjParser.ModContext ctx) {
         checkForNumeric(visit(ctx.expression(0)), ctx.expression(0).getStart());
         checkForNumeric(visit(ctx.expression(1)), ctx.expression(1).getStart());
-        return natives.get("real");
+        return super.visitMod(ctx);
     }
     
     @Override
     public Symbol visitDiv(vrjParser.DivContext ctx) {
         checkForNumeric(visit(ctx.expression(0)), ctx.expression(0).getStart());
         checkForNumeric(visit(ctx.expression(1)), ctx.expression(1).getStart());
-        return natives.get("real");
+        return super.visitDiv(ctx);
     }
     
     @Override
     public Symbol visitMult(vrjParser.MultContext ctx) {
         checkForNumeric(visit(ctx.expression(0)), ctx.expression(0).getStart());
         checkForNumeric(visit(ctx.expression(1)), ctx.expression(1).getStart());
-        return natives.get("real");
+        return super.visitMult(ctx);
     }
     
     @Override
     public Symbol visitSum(vrjParser.SumContext ctx) {
         checkForNumeric(visit(ctx.expression(0)), ctx.expression(0).getStart());
         checkForNumeric(visit(ctx.expression(1)), ctx.expression(1).getStart());
-        return natives.get("real");
+        return super.visitSum(ctx);
     }
     
     @Override
     public Symbol visitSub(vrjParser.SubContext ctx) {
         checkForNumeric(visit(ctx.expression(0)), ctx.expression(0).getStart());
         checkForNumeric(visit(ctx.expression(1)), ctx.expression(1).getStart());
-        return natives.get("real");
+        return super.visitSub(ctx);
     }
     
     @Override
@@ -212,14 +431,16 @@ public class ReferencePhase extends BasePhase {
         Symbol variable = visit(ctx.name());
         
         if (!inRange(ctx)) {
-            return variable.getType();
+            return variable;
         }
     
-        checkForVariable(variable, ctx.name());
+        //checkForVariable(variable, ctx.name());
         
-        super.visitVariableExpression(ctx);
+        if (ctx.expression() != null) {
+            checkForNumeric(visit(ctx.expression()), ctx.expression().getStart());
+        }
         
-        return variable.getType();
+        return variable;
     }
     
     @Override
@@ -227,13 +448,13 @@ public class ReferencePhase extends BasePhase {
         Symbol function = visit(ctx.name());
         
         if (!inRange(ctx)) {
-            return function.getType();
+            return function;
         }
         
-        checkForFunction(function, ctx.name());
+        //checkForFunction(function, ctx.name());
         
         if (this.validator.isFunction(function)) {
-            ArrayList<Symbol> params = ((FunctionSymbol) function).getParams();
+            ArrayList<Symbol> params = ((ScopeSymbol) function).getParams();
             List<vrjParser.ExpressionContext> exprs = null;
             
             if (ctx.arguments().expressionList() != null) {
@@ -265,21 +486,35 @@ public class ReferencePhase extends BasePhase {
             }
         }
         
-        return function.getType();
+        return function;
     }
     
     @Override
     public Symbol visitComparison(vrjParser.ComparisonContext ctx) {
-        checkForBoolean(visit(ctx.expression(0)), ctx.expression(0).getStart());
-        checkForBoolean(visit(ctx.expression(1)), ctx.expression(1).getStart());
-        return natives.get("boolean");
+        Symbol a = visit(ctx.expression(0));
+        Symbol b = visit(ctx.expression(1));
+        
+        switch (ctx.operator.getText()) {
+            case "==":
+            case "!=":
+                checkForValidEqualityExpression(a, b, ctx);
+                break;
+            case ">":
+            case ">=":
+            case "<":
+            case "<=":
+                checkForValidSizeExpression(a, b, ctx);
+                break;
+        }
+        
+        return scope.resolve("boolean");
     }
     
     @Override
     public Symbol visitLogical(vrjParser.LogicalContext ctx) {
-        checkForBoolean(visit(ctx.expression(0)), ctx.expression(0).getStart());
-        checkForBoolean(visit(ctx.expression(1)), ctx.expression(1).getStart());
-        return natives.get("boolean");
+        checkForBoolean(visit(ctx.expression(0)), ctx.expression(0));
+        checkForBoolean(visit(ctx.expression(1)), ctx.expression(1));
+        return super.visitLogical(ctx);
     }
     
     @Override
@@ -288,7 +523,7 @@ public class ReferencePhase extends BasePhase {
         
         checkForFunction(function, ctx.name());
         
-        return natives.get("code");
+        return super.visitCode(ctx);
     }
     
     @Override
@@ -299,17 +534,37 @@ public class ReferencePhase extends BasePhase {
     
     @Override
     public Symbol visitFunctionSignature(vrjParser.FunctionSignatureContext ctx) {
-        return visit(ctx.name());
+        Symbol function = visit(ctx.name());
+        
+        Symbol prevScope = scope;
+        
+        scope = function;
+        visit(ctx.paramList());
+        visit(ctx.type());
+        scope = prevScope;
+        
+        return function;
     }
     
     @Override
     public Symbol visitFunctionDefinition(vrjParser.FunctionDefinitionContext ctx) {
         Symbol function = visit(ctx.functionSignature());
         
+        checkMissingReturn(function, ctx.statements());
+        
+        Symbol prevScope = scope;
+        
         scope = function;
-        super.visitFunctionDefinition(ctx);
-        scope = function.getParent();
+        visit(ctx.statements());
+        scope = prevScope;
     
+        return function;
+    }
+    
+    @Override
+    public Symbol visitFunctionCall(vrjParser.FunctionCallContext ctx) {
+        Symbol function = visit(ctx.getChild(1));
+        checkForFunction(function, (ParserRuleContext) ctx.getChild(1));
         return function;
     }
     
@@ -317,61 +572,70 @@ public class ReferencePhase extends BasePhase {
     public Symbol visitVariableStatement(vrjParser.VariableStatementContext ctx) {
         Symbol variable = visit(ctx.name());
         
-        if (ctx.expression() != null) {
-            Symbol value = visit(ctx.expression());
-            checkCompatibleType(variable, value, ctx.expression().getStart());
-        }
+        visit(ctx.type());
         
-        super.visitVariableStatement(ctx);
+        if (ctx.expression() != null) {
+            if (variable.hasModifier(Modifier.ARRAY)) {
+                addError(ctx.expression().getStart(), "Arrays can not be initialized (yet)");
+            } else {
+                Symbol value = visit(ctx.expression());
+                checkCompatibleType(variable, value, ctx.expression().getStart());
+            }
+        }
         
         return variable;
     }
     
     @Override
     public Symbol visitSetVariable(vrjParser.SetVariableContext ctx) {
-        Symbol variable = visit(ctx.variableExpression());
+        Symbol variable = visit(ctx.getChild(1));
         
-        checkCompatibleType(variable, visit(ctx.expression()), ctx.expression().getStart());
-        
-        super.visitSetVariable(ctx);
+        if (variable.hasModifier(Modifier.CONSTANT)) {
+            addError(((ParserRuleContext) ctx.getChild(1)).getStart(), "Cannot assign a value to constant variable");
+        } else {
+            checkCompatibleType(variable, visit(ctx.expression()), ctx.expression().getStart());
+        }
         
         return variable;
     }
     
     @Override
     public Symbol visitExitwhen(vrjParser.ExitwhenContext ctx) {
-        checkForBoolean(visit(ctx.expression()), ctx.expression().getStart());
+        checkForBoolean(visit(ctx.expression()), ctx.expression());
         return super.visitExitwhen(ctx);
     }
     
     @Override
     public Symbol visitIfStatement(vrjParser.IfStatementContext ctx) {
-        checkForBoolean(visit(ctx.expression()), ctx.expression().getStart());
+        checkForBoolean(visit(ctx.expression()), ctx.expression());
         return super.visitIfStatement(ctx);
     }
     
     @Override
     public Symbol visitElseIfStatement(vrjParser.ElseIfStatementContext ctx) {
-        checkForBoolean(visit(ctx.expression()), ctx.expression().getStart());
+        checkForBoolean(visit(ctx.expression()), ctx.expression());
         return super.visitElseIfStatement(ctx);
     }
     
     @Override
-    public Symbol visitReturn(vrjParser.ReturnContext ctx) {
+    public Symbol visitReturnStatement(vrjParser.ReturnStatementContext ctx) {
         if (ctx.expression() != null) {
             Symbol value = visit(ctx.expression());
             checkCompatibleType(scope, value, ctx.expression().getStart());
-        } else if (scope.getType() != scope) {
+            
+            return value;
+        } else if (scope.getType() != scope && scope.getType() != scope.resolve("nothing")) {
             addError(ctx.getStart(), "Must return a value");
         }
-        
-        return super.visitReturn(ctx);
+    
+        return scope.resolve("nothing");
     }
     
     @Override
     public Symbol visitLibraryDefinition(vrjParser.LibraryDefinitionContext ctx) {
         Symbol library = visit(ctx.name(0));
         
+        Symbol prevScope = scope;
         scope = library;
         
         if (ctx.initializer != null) {
@@ -380,20 +644,18 @@ public class ReferencePhase extends BasePhase {
             checkForValidInitializer(initializer, ctx.initializer);
             
             if (library instanceof ScopeSymbol) {
-                ((ScopeSymbol) library).defineInitializer(initializer);
+                ((ScopeSymbol) library).setInitializer(initializer);
             }
         }
         
         if (ctx.libraryRequirementExpression() != null) {
             for (vrjParser.NameContext requirement : ctx.libraryRequirementExpression().name()) {
-                if (!visit(requirement).hasModifier(Modifier.LIBRARY)) {
-                    addError(requirement.getStart(), requirement.getText() + " is not a library");
-                }
+                checkLibraryRequirement(visit(requirement), requirement);
             }
         }
         
-        super.visitLibraryDefinition(ctx);
-        scope = library.getParent();
+        visit(ctx.libraryBody());
+        scope = prevScope;
         
         return library;
     }
@@ -402,9 +664,22 @@ public class ReferencePhase extends BasePhase {
     public Symbol visitStructDefinition(vrjParser.StructDefinitionContext ctx) {
         Symbol struct = visit(ctx.name());
         
+        if (ctx.extendsFrom != null) {
+            if (ctx.extendsFrom.getText().equals("array")) {
+                
+            } else {
+                Symbol extend = visit(ctx.extendsFrom);
+                
+                checkForValidExtendable(extend, ctx.extendsFrom);
+                struct.addExtends(extend);
+            }
+        }
+        
+        Symbol prevScope = scope;
+        
         scope = struct;
-        super.visitStructDefinition(ctx);
-        scope = struct.getParent();
+        visit(ctx.structBody());
+        scope = prevScope;
         
         return struct;
     }
@@ -424,12 +699,14 @@ public class ReferencePhase extends BasePhase {
             checkForValidInitializer(method, ctx.functionSignature());
             
             if (scope instanceof ScopeSymbol) {
-                ((ScopeSymbol) scope).defineInitializer(method);
+                ((ScopeSymbol) scope).setInitializer(method);
             }
+        } else if ("create".equals(method.getName())) {
+            checkForValidCreateMethod(method, ctx.functionSignature());
         }
         
         scope = method;
-        super.visitMethodDefinition(ctx);
+        visit(ctx.statements());
         scope = method.getParent();
         
         return method;

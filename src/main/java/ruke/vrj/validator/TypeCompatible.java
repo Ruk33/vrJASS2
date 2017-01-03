@@ -1,5 +1,7 @@
 package ruke.vrj.validator;
 
+import ruke.vrj.symbol.StructInstanceSymbol;
+import ruke.vrj.symbol.StructSymbol;
 import ruke.vrj.symbol.Symbol;
 
 /**
@@ -28,6 +30,11 @@ public class TypeCompatible {
             case "code": return 5;
             case "nothing": return 6;
             case "null": return 7;
+        }
+        
+        if (symbol.getType() instanceof StructSymbol ||
+            symbol.getType() instanceof StructInstanceSymbol) {
+          return 0;
         }
         
         return -1;

@@ -213,8 +213,13 @@ public class TranslatorPhase extends vrjBaseVisitor<Expression> {
     }
     
     @Override
+    public Expression visitGlobalVariable(vrjParser.GlobalVariableContext ctx) {
+        return visit(ctx.variableStatement());
+    }
+    
+    @Override
     public Expression visitGlobalDefinition(vrjParser.GlobalDefinitionContext ctx) {
-        for (vrjParser.VariableStatementContext variable : ctx.variableStatement()) {
+        for (vrjParser.GlobalVariableContext variable : ctx.globalVariable()) {
             globals.append(visit(variable));
         }
         
@@ -295,13 +300,13 @@ public class TranslatorPhase extends vrjBaseVisitor<Expression> {
     }
     
     @Override
-    public Expression visitReturn(vrjParser.ReturnContext ctx) {
+    public Expression visitReturnStatement(vrjParser.ReturnStatementContext ctx) {
         Expression result = new ReturnStatement();
-        
+    
         if (ctx.expression() != null) {
             result.append(visit(ctx.expression()));
         }
-        
+    
         return result;
     }
     
