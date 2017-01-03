@@ -49,19 +49,14 @@ public class Compiler {
         TokenSymbolMap symbols = new TokenSymbolMap();
 
         DefinitionPhase definitionPhase = new DefinitionPhase(scope);
-        TypePhase typePhase = new TypePhase(scope);
 
         definitionPhase.setTokenSymbolMap(symbols);
-        typePhase.setTokenSymbolMap(symbols);
 
         if (injectSymbols != null) {
             scope.injectSymbol(injectSymbols);
         }
         
         definitionPhase.visit(parser.init());
-        parser.reset();
-
-        typePhase.visit(parser.init());
         parser.reset();
 
         return new DefinitionPhaseResult(parser, scope, symbols, definitionPhase.getErrors());
