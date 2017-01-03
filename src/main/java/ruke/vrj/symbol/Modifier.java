@@ -7,9 +7,6 @@ public enum Modifier {
     CONSTANT,
     LOCAL,
     ARRAY,
-    VARIABLE,
-    FUNCTION,
-    TYPE,
-    LIBRARY,
-    STRUCT
+    STATIC,
+    READONLY
 }
