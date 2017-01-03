@@ -1,24 +1,33 @@
 grammar vrj;
 
-init: (
-    typeDefinition |
-    nativeDefinition |
-    globalDefinition |
-    functionDefinition |
-    libraryDefinition |
-    structDefinition |
-    NL
-)* EOF;
+init:
+    ( typeDefinition
+    | nativeDefinition
+    | globalDefinition
+    | functionDefinition
+    | libraryDefinition
+    | structDefinition
+    | NL
+    )*
+    EOF
+    ;
 
 visibility: 'private' | 'public';
 
-name: ID ('.' ID)*;
+member: variableExpression | functionExpression;
 
-type: ID | 'nothing';
+memberExpression: member ('.' member)+;
+
+name: ID;
+
+type: memberExpression | name | 'nothing';
 
 param: type name;
 
-paramList: (param (',' param)*) | 'nothing';
+paramList:
+    ( param (',' param)* )
+    | 'nothing'
+    ;
 
 typeDefinition: 'type' typeName=name ('extends' typeExtends=name) NL;
 
@@ -33,85 +42,116 @@ functionExpression: name arguments;
 variableExpression: name ('[' expression ']')?;
 
 expression:
-'(' expression ')' #Parenthesis |
-'-' expression #Negative |
-'not' expression #Not |
-expression '%' expression #Mod |
-expression '/' expression #Div |
-expression '*' expression #Mult |
-expression '+' expression #Sum |
-expression '-' expression #Sub |
-variableExpression #IgnoreVariableExpression |
-functionExpression #IgnoreFunctionExpression |
-expression operator=('=='|'!='|'<='|'<'|'>'|'>=') expression #Comparison |
-expression operator=('or'|'and') expression #Logical |
-'function' name #Code |
-('true'|'false') #Boolean |
-'null' #Null |
-STRING #String |
-REAL #Real |
-INT #Integer;
+     '(' expression ')' #Parenthesis
+    | '-' expression #Negative
+    | 'not' expression #Not
+    | expression '%' expression #Mod
+    | expression '/' expression #Div
+    | expression '*' expression #Mult
+    | expression '+' expression #Sum
+    | expression '-' expression #Sub
+    | memberExpression #IgnoreMemberExpression
+    | variableExpression #IgnoreVariableExpression
+    | functionExpression #IgnoreFunctionExpression
+    | expression operator=('=='|'!='|'<='|'<'|'>'|'>=') expression #Comparison
+    | expression operator=('or'|'and') expression #Logical
+    | 'function' name #Code
+    | ('true'|'false') #Boolean
+    | 'null' #Null
+    | STRING #String
+    | REAL #Real
+    | INT #Integer
+    ;
 
 expressionList: expression (',' expression)*;
 
-variableStatement: type ('array')? name ('=' expression)? NL;
+variableStatement: type (array='array')? name ('=' expression)? NL;
+
+globalVariable: visibility? (constant='constant')? variableStatement;
 
 globalDefinition:
-'globals' NL
-    ((('constant')? variableStatement) | NL)*
-'endglobals' NL;
+    'globals' NL
+        (globalVariable | NL)*
+    'endglobals' NL;
 
 loopStatement:
-'loop' NL
-    statements
-'endloop' NL;
+    'loop' NL
+        statements
+    'endloop' NL;
 
 elseIfStatement: 'elseif' expression 'then' NL statements;
 
 elseStatement: 'else' NL statements;
 
 ifStatement:
-'if' expression 'then' NL
-    statements
-elseIfStatement*
-elseStatement?
-'endif' NL;
+    (sstatic='static')? 'if' expression 'then' NL
+        statements
+    elseIfStatement*
+    elseStatement?
+    'endif' NL;
+
+localVariable: 'local' variableStatement;
+setVariable: 'set' (variableExpression | memberExpression) '=' expression NL;
+exitwhen: 'exitwhen' expression NL;
+functionCall: 'call' (functionExpression | memberExpression) NL;
+returnStatement: 'return' expression? NL;
 
 statement:
-'local' variableStatement #LocalVariable |
-'set' variableExpression '=' expression NL #SetVariable |
-'exitwhen' expression NL #Exitwhen |
-'call' functionExpression NL #FunctionCall |
-'return' expression? NL #Return |
-ifStatement #IgnoreIf |
-loopStatement #IgnoreLoop;
+      localVariable
+    | setVariable
+    | exitwhen
+    | functionCall
+    | returnStatement
+    | ifStatement
+    | loopStatement
+    ;
 
 statements: (statement | NL)*;
 
 functionDefinition:
-visibility? 'function' functionSignature
-    statements
-'endfunction' NL;
+    visibility? 'function' functionSignature
+        statements
+    'endfunction' NL;
 
 libraryRequirementExpression: name (',' name)*;
 
-libraryDefinition:
-'library' name ('initializer' initializer=name)? ('requires' libraryRequirementExpression)? NL
-    (globalDefinition | functionDefinition | structDefinition | NL)*
- 'endlibrary' NL;
+libraryBody:
+    ( globalDefinition
+    | functionDefinition
+    | structDefinition
+    | NL
+    )*
+    ;
 
- propertyStatement:
- visibility? variableStatement;
+libraryDefinition:
+    'library' name ('initializer' initializer=name)? ('requires' libraryRequirementExpression)? NL
+        libraryBody
+     'endlibrary' NL;
+
+ propertyStatement: visibility? (sstatic='static')? variableStatement;
 
  methodDefinition:
- visibility? 'method' functionSignature
-    statements
- 'endmethod' NL;
+     visibility? (sstatic='static')? 'method' (operator='operator')? functionSignature
+        statements
+     'endmethod' NL;
+
+extendable:
+      'array'
+    | name
+    | memberExpression
+    ;
+
+structBody:
+    ( propertyStatement
+    | methodDefinition
+    | NL
+    )*
+    ;
 
 structDefinition:
-visibility? 'struct' name ('extends' 'array')? NL
-    (propertyStatement | methodDefinition | NL)*
-'endstruct' NL;
+    visibility? 'struct' name ('extends' extendsFrom=extendable)? NL
+        structBody
+    'endstruct' NL;
 
 STRING: '"' .*? '"';
 REAL: [0-9]+ '.' [0-9]* | '.'[0-9]+;
