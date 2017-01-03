@@ -8,6 +8,7 @@ import org.junit.Test;
 /**
  * Created by Ruke on 23/09/2016.
  */
+@Ignore
 public class CompilerTest {
     
     private static Compiler compile(String code) {
@@ -21,11 +22,88 @@ public class CompilerTest {
     }
     
     @Test
+    public void mustWorkOnClassInstance() {
+        String code = String.join("\n",
+            "struct foo",
+                "public method returnFoo takes nothing returns foo",
+                    "local foo f",
+                    "return f",
+                "endmethod",
+            "endstruct",
+            "function bar takes nothing returns nothing",
+                "local foo f",
+                "call f.returnFoo().returnFoo()",
+            "endfunction"
+        );
+    
+        Compiler compiler = compile(code);
+        
+        System.out.println(compiler.getAllErrors().toString().replace(",", "\n"));
+    }
+    
+    @Test
+    public void mustCheckForStaticMembers() {
+        String code = String.join("\n",
+            "struct foo",
+                "public static integer a",
+                "public integer b",
+                "public static method staticDoSomething takes nothing returns nothing",
+                "endmethod",
+                "public method doSomething takes nothing returns nothing",
+                "endmethod",
+            "endstruct",
+            "function bar takes nothing returns nothing",
+                "local foo f",
+                "call f.doSomething()",
+                "call foo.staticDoSomething()",
+                "set foo.a = 2",
+                "set f.b = 3",
+                "call f.staticDoSomething()",
+                "call foo.doSomething()",
+                "set foo.b = 4",
+                "set f.a = 5",
+            "endfunction"
+        );
+    
+        Compiler compiler = compile(code);
+    
+        Assert.assertEquals(
+            "16:5 - foo.doSomething is not a function",
+            compiler.getAllErrors().get(0).getMessage()
+        );
+    
+        Assert.assertEquals(
+            "18:4 - f.a is not a variable",
+            compiler.getAllErrors().get(1).getMessage()
+        );
+    
+        Assert.assertEquals(
+            "17:4 - foo.b is not a variable",
+            compiler.getAllErrors().get(2).getMessage()
+        );
+    
+        Assert.assertEquals(
+            "17:12 - Incompatible type. Expected nothing but integer given",
+            compiler.getAllErrors().get(3).getMessage()
+        );
+    
+        Assert.assertEquals(
+            "15:5 - f.staticDoSomething is not a function",
+            compiler.getAllErrors().get(4).getMessage()
+        );
+    
+        Assert.assertEquals(
+            "18:10 - Incompatible type. Expected nothing but integer given",
+            compiler.getAllErrors().get(5).getMessage()
+        );
+    }
+    
+    @Test
     public void mustCheckVisibilityInStructs() {
         String code = String.join("\n",
             "struct foo",
                 "private integer a",
-                "integer b",
+                "private integer b",
                 "private method privateDoSomething takes nothing returns nothing",
                 "endmethod",
                 "method doSomething takes nothing returns nothing",
@@ -41,15 +119,32 @@ public class CompilerTest {
         );
     
         Compiler compiler = compile(code);
-    
+        
+        System.out.println(compiler.getAllErrors().toString().replace(",", "\n"));
+        
         Assert.assertEquals(
             "11:4 - f.a is not a variable",
             compiler.getAllErrors().get(0).getMessage()
         );
     
         Assert.assertEquals(
-            "13:5 - f.privateDoSomething is not a function",
+            "12:10 - Incompatible type. Expected nothing but integer given",
             compiler.getAllErrors().get(1).getMessage()
+        );
+    
+        Assert.assertEquals(
+            "13:5 - f.privateDoSomething is not a function",
+            compiler.getAllErrors().get(2).getMessage()
+        );
+    
+        Assert.assertEquals(
+            "12:4 - f.b is not a variable",
+            compiler.getAllErrors().get(3).getMessage()
+        );
+    
+        Assert.assertEquals(
+            "11:10 - Incompatible type. Expected nothing but integer given",
+            compiler.getAllErrors().get(4).getMessage()
         );
     }
     
@@ -371,25 +466,27 @@ public class CompilerTest {
         );
     
         Compiler compiler = compile(code);
+        
+        System.out.print(compiler.getAllErrors().toString().replace(",", "\n"));
     
         Assert.assertEquals(
-            compiler.getAllErrors().get(0).getMessage(),
-            "8:5 - Incorrect argument count. Expected 2 arguments"
+            "8:5 - Incorrect argument count. Expected 2 arguments",
+            compiler.getAllErrors().get(0).getMessage()
         );
     
         Assert.assertEquals(
-            compiler.getAllErrors().get(1).getMessage(),
-            "9:9 - Incompatible type. Expected integer but boolean given"
+            "9:9 - Incompatible type. Expected integer but boolean given",
+            compiler.getAllErrors().get(1).getMessage()
         );
     
         Assert.assertEquals(
-            compiler.getAllErrors().get(2).getMessage(),
-            "9:15 - Incompatible type. Expected boolean but integer given"
+            "9:15 - Incompatible type. Expected boolean but integer given",
+            compiler.getAllErrors().get(2).getMessage()
         );
     
         Assert.assertEquals(
-            compiler.getAllErrors().get(3).getMessage(),
-            "7:5 - Incorrect argument count. Expected 0 arguments"
+            "7:5 - Incorrect argument count. Expected 0 arguments",
+            compiler.getAllErrors().get(3).getMessage()
         );
     }
     

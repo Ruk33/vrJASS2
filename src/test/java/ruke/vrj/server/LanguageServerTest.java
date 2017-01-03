@@ -3,11 +3,13 @@ package ruke.vrj.server;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Created by Ruke on 25/09/2016.
  */
+@Ignore
 public class LanguageServerTest {
     
     private String requestEdit(LanguageServer ls, String uri, String code, int line, int range) {

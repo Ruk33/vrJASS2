@@ -1,9 +1,9 @@
 package ruke.vrj.translator;
 
-import ruke.vrj.symbol.FunctionSymbol;
-import ruke.vrj.symbol.Symbol;
 import org.junit.Assert;
 import org.junit.Test;
+import ruke.vrj.symbol.ScopeSymbol;
+import ruke.vrj.symbol.Symbol;
 
 /**
  * Created by Ruke on 23/09/2016.
@@ -12,9 +12,11 @@ public class FunctionDefinitionTest {
     
     @Test
     public void test() {
-        FunctionSymbol foo = new FunctionSymbol("foo");
+        ScopeSymbol foo = new ScopeSymbol("foo");
         
-        foo.defineParam(new Symbol("bar").setType(new Symbol("baz")));
+        try {
+            foo.defineParam(new Symbol("bar").setType(new Symbol("baz")));
+        } catch (Exception e) {}
         foo.setType(new Symbol("integer"));
         
         Expression loop = new LoopStatement();
