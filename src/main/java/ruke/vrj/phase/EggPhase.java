@@ -7,9 +7,9 @@ import ruke.vrj.symbol.Symbol;
  */
 // Replace SecretEggPhase by BasePhase
 public class EggPhase extends SecretEggPhase {
-    
-    public EggPhase(Symbol scope) {
-        super(scope);
-    }
-    
+
+  public EggPhase(Symbol scope) {
+    super(scope);
+  }
+
 }

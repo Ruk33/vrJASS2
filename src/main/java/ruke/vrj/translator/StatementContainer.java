@@ -8,11 +8,11 @@ import java.util.ArrayList;
  * Created by Ruke on 23/09/2016.
  */
 public interface StatementContainer {
-    
-    public boolean canDeclareVariables();
-    
-    public ArrayList<Symbol> getDeclaredVariables();
-    
-    public ArrayList<Expression> getChilds();
-    
+
+  boolean canDeclareVariables();
+
+  ArrayList<Symbol> getDeclaredVariables();
+
+  ArrayList<Expression> getChilds();
+
 }

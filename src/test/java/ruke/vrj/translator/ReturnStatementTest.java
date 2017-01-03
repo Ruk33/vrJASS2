@@ -7,20 +7,20 @@ import org.junit.Test;
  * Created by Ruke on 23/09/2016.
  */
 public class ReturnStatementTest {
-    
-    @Test
-    public void test() {
-        Expression a = new RawExpression("a");
-        
-        Assert.assertEquals(
-            "return a",
-            new ReturnStatement().append(a).translate()
-        );
-        
-        Assert.assertEquals(
-            "return",
-            new ReturnStatement().translate()
-        );
-    }
-    
+
+  @Test
+  public void test() {
+    Expression a = new RawExpression("a");
+
+    Assert.assertEquals(
+        "return a",
+        new ReturnStatement().append(a).translate()
+    );
+
+    Assert.assertEquals(
+        "return",
+        new ReturnStatement().translate()
+    );
+  }
+
 }
