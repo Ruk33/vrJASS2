@@ -1,6 +1,6 @@
 package ruke.vrj.translator;
 
-import ruke.vrj.symbol.FunctionSymbol;
+import ruke.vrj.symbol.ScopeSymbol;
 import ruke.vrj.symbol.Symbol;
 
 import java.util.ArrayList;
@@ -36,8 +36,8 @@ public class FunctionDefinition extends Expression implements StatementContainer
     private Expression getParams() {
         Expression result = new ExpressionList();
         
-        if (getSymbol() instanceof FunctionSymbol) {
-            ArrayList<Symbol> params = ((FunctionSymbol) getSymbol()).getParams();
+        if (getSymbol() instanceof ScopeSymbol) {
+            ArrayList<Symbol> params = ((ScopeSymbol) getSymbol()).getParams();
             
             if (params.isEmpty()) {
                 result.append(new RawExpression("nothing"));
