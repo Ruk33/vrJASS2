@@ -148,6 +148,13 @@ public class Symbol {
     this.children.define(new Symbol(this, "null", "null", ImmutableSet.of(SymbolFlag.TYPE), null));
   }
 
+  /**
+   * Reset the counter of the ids (useful for tests)
+   */
+  public static void resetIdCounter() {
+    Symbol.ID = 0;
+  }
+
   public final void addFlag(final SymbolFlag flag) {
     this.flags = ImmutableSet.<SymbolFlag>builder().addAll(this.flags).add(flag).build();
   }
