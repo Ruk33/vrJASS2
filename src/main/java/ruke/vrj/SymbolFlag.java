@@ -29,6 +29,8 @@ public enum SymbolFlag {
   FUNCTION,
   TYPE,
   LOCAL,
+  GLOBAL,
+  PROPERTY,
   ARRAY,
   VARIABLE,
   STATIC,
