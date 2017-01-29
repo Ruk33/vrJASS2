@@ -28,7 +28,7 @@ import java.util.ArrayList;
 public class TypeChecker {
 
   public static boolean isValidNumber(final Symbol expression) {
-    return expression.type.equals("integer") || expression.type.equals("real");
+    return "integer".equals(expression.type) || "real".equals(expression.type);
   }
 
   public static boolean isValidFunctionCall(final Symbol function, final ArrayList<Symbol> args) {
@@ -54,11 +54,7 @@ public class TypeChecker {
       return false;
     }
 
-    if (index.flags.contains(SymbolFlag.VARIABLE) && index.flags.contains(SymbolFlag.ARRAY)) {
-      return false;
-    }
-
-    return true;
+    return !index.flags.contains(SymbolFlag.ARRAY);
   }
 
   public static boolean isStruct(final Symbol struct) {
