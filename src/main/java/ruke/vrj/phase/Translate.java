@@ -331,7 +331,7 @@ public class Translate extends vrjBaseVisitor<Expression> {
 
   @Override
   public Expression visitStringExpression(vrjParser.StringExpressionContext ctx) {
-    return new RawExpression(String.format("\"%s\"", ctx.getText()));
+    return new RawExpression(String.format("%s", ctx.getText()));
   }
 
   @Override
