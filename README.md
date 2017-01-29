@@ -60,6 +60,20 @@ Translation phase
 =================
 It will handle the translation of the program, from vrJASS to raw JASS.
 
+Want to contribute?
+===================
+Great!, here are a few steps:
+
+1 - Fork the project
+2 - Open an issue describing what are you going to be working on (so we don't duplicate efforts)
+3 - Create a new branch from `master` to work on your feature (`git checkout -b ISSUE_ID/breaf-feature-description`).
+4 - Create tests that ensure the code does what it must
+5 - Finish the feature
+6 - Pull request!
+
+If you're not sure of your code, don't worry, send a pull request 
+and we will check it together ^^
+
 Licence
 =======
 MIT
