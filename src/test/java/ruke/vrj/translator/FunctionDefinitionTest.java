@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.util.ArrayList;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import ruke.vrj.Symbol;
 import ruke.vrj.SymbolFlag;
@@ -35,7 +34,6 @@ import ruke.vrj.SymbolFlag;
 public class FunctionDefinitionTest {
 
   @Test
-  @Ignore
   public void stubMethod() {
     /*
      * struct person
@@ -58,6 +56,8 @@ public class FunctionDefinitionTest {
      *  endmethod
      * endstruct
      */
+    Symbol.resetIdCounter();
+
     final Symbol main = new Symbol();
 
     final Symbol person = new Symbol(
@@ -125,9 +125,9 @@ public class FunctionDefinitionTest {
         String.join("\n",
             "function person_getName takes integer vtype, integer this returns string",
               "if false then",
-              "else if vtype == 13 then",
+              "else if vtype == 12 then",
                 "return foo_getName(this)",
-              "else if vtype == 16 then",
+              "else if vtype == 15 then",
                 "return bar_getName(this)",
               "endif",
               "return person_name[this]",
