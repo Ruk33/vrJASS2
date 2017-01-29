@@ -1,3 +1,5 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/e66538f249744847b51ef500234b40ad)](https://www.codacy.com/app/franco-montenegro-ruke/vrJASS2?utm_source=github.com&utm_medium=referral&utm_content=Ruk33/vrJASS2&utm_campaign=badger)
+
 vrJASS2
 =======
 This is the new version of my compiler vrJASS. It aims to have a very high
