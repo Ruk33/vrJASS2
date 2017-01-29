@@ -183,16 +183,14 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
 
     method.registerImplementationIfNecessary();
 
-    if ("onInit".equals(name)) {
-      if (!TypeChecker.isValidInitializer(method)) {
-        this.results.add(new Result(
-            ctx.getStart().getInputStream().getSourceName(),
-            ctx.getStart().getLine(),
-            ctx.functionSignature().name().getStart().getCharPositionInLine(),
-            ctx.functionSignature().name().getStart().getCharPositionInLine() + name.length(),
-            "Struct initializer must be static and must take no parameters"
-        ));
-      }
+    if ("onInit".equals(name) && !TypeChecker.isValidInitializer(method)) {
+      this.results.add(new Result(
+          ctx.getStart().getInputStream().getSourceName(),
+          ctx.getStart().getLine(),
+          ctx.functionSignature().name().getStart().getCharPositionInLine(),
+          ctx.functionSignature().name().getStart().getCharPositionInLine() + name.length(),
+          "Struct initializer must be static and must take no parameters"
+      ));
     }
 
     final SymbolTable prevSymbols = this.symbols;
@@ -369,6 +367,8 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
       case ">":
         this.checkForNumeric(ctx.left, a);
         this.checkForNumeric(ctx.right, b);
+        break;
+      default:
         break;
     }
 
