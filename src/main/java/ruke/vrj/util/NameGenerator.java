@@ -38,7 +38,7 @@ public class NameGenerator {
           parent.flags.contains(SymbolFlag.SCOPE);
 
       if (mustUsePrefix) {
-        return String.format("%s_%s", parent.name, symbol.name);
+        return String.format("%s_%s", NameGenerator.to(parent), symbol.name);
       }
     }
 
