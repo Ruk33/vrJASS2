@@ -31,7 +31,7 @@ cd path/to/vrj/builds/libs
 java -jar vrjc.jar file1.j file2.j ...
 ```
 
-For the moment, it will only translate or throw errors in the std.
+For the moment, it will only translate or throw errors in the console (stdout).
 
 Keep in mind that this is a very unstable version and many features are not 
 implemented yet.
