@@ -25,6 +25,7 @@ package ruke.vrj;
  */
 public enum SymbolFlag {
   LIBRARY,
+  SCOPE,
   STRUCT,
   FUNCTION,
   TYPE,
