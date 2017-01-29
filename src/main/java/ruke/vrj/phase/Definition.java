@@ -240,7 +240,14 @@ public class Definition extends vrjBaseVisitor<Symbol> {
 
   @Override
   public Symbol visitPropertyDeclaration(vrjParser.PropertyDeclarationContext ctx) {
-    return this.visit(ctx.variableDeclaration());
+    final Symbol property = this.visit(ctx.variableDeclaration());
+
+    if (property != null) {
+      property.addFlag(SymbolFlag.GLOBAL);
+      property.addFlag(SymbolFlag.PROPERTY);
+    }
+
+    return property;
   }
 
   @Override
@@ -405,7 +412,13 @@ public class Definition extends vrjBaseVisitor<Symbol> {
 
   @Override
   public Symbol visitGlobalVariableDeclaration(vrjParser.GlobalVariableDeclarationContext ctx) {
-    return this.visit(ctx.variableDeclaration());
+    final Symbol variable = this.visit(ctx.variableDeclaration());
+
+    if (variable != null) {
+      variable.addFlag(SymbolFlag.GLOBAL);
+    }
+
+    return variable;
   }
 
   @Override
