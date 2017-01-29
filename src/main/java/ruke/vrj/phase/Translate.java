@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import ruke.vrj.Symbol;
+import ruke.vrj.SymbolFlag;
 import ruke.vrj.SymbolTable;
 import ruke.vrj.antlr.vrjBaseVisitor;
 import ruke.vrj.antlr.vrjParser;
 import ruke.vrj.antlr.vrjParser.ExpressionContext;
 import ruke.vrj.antlr.vrjParser.MethodDeclarationContext;
-import ruke.vrj.antlr.vrjParser.PropertyDeclarationContext;
 import ruke.vrj.antlr.vrjParser.StatementContext;
 import ruke.vrj.antlr.vrjParser.TopDeclarationContext;
 import ruke.vrj.translator.AssignmentStatement;
@@ -24,6 +24,7 @@ import ruke.vrj.translator.Expression;
 import ruke.vrj.translator.FunctionDefinition;
 import ruke.vrj.translator.FunctionExpression;
 import ruke.vrj.translator.FunctionStatement;
+import ruke.vrj.translator.GlobalDefinition;
 import ruke.vrj.translator.IfStatement;
 import ruke.vrj.translator.LogicalExpression;
 import ruke.vrj.translator.LoopStatement;
@@ -83,7 +84,16 @@ public class Translate extends vrjBaseVisitor<Expression> {
       }
     }
 
-    return new RawExpression(String.join("\n", program));
+    return new RawExpression(
+        new GlobalDefinition(this.globals) +
+        "\n" +
+        String.join("\n", program)
+    );
+  }
+
+  @Override
+  public Expression visitPropertyDeclaration(vrjParser.PropertyDeclarationContext ctx) {
+    return this.visit(ctx.variableDeclaration());
   }
 
   @Override
@@ -109,7 +119,7 @@ public class Translate extends vrjBaseVisitor<Expression> {
     final List<String> methods = new ArrayList<>();
 
     if (ctx.propertyDeclaration() != null) {
-      for (final PropertyDeclarationContext property : ctx.propertyDeclaration()) {
+      for (final vrjParser.PropertyDeclarationContext property : ctx.propertyDeclaration()) {
         this.visit(property);
       }
     }
@@ -344,10 +354,10 @@ public class Translate extends vrjBaseVisitor<Expression> {
     return new RawExpression(ctx.getText());
   }
 
-  //@Override
-  //public Expression visitGlobalVariable(vrjParser.GlobalVariableContext ctx) {
-  //  throw new NotImplementedException();
-  //}
+  @Override
+  public Expression visitGlobalVariableDeclaration(vrjParser.GlobalVariableDeclarationContext ctx) {
+    return this.visit(ctx.variableDeclaration());
+  }
 
   @Override
   public Expression visitLoopStatement(vrjParser.LoopStatementContext ctx) {
@@ -397,14 +407,29 @@ public class Translate extends vrjBaseVisitor<Expression> {
   public Expression visitArrayVariableDeclaration(vrjParser.ArrayVariableDeclarationContext ctx) {
     final String name = ctx.name().getText();
     final Symbol variable = this.symbols.resolve(name);
-    return new VariableStatement(variable, null);
+    final Expression declaration = new VariableStatement(variable, null);
+
+    if (variable.flags.contains(SymbolFlag.GLOBAL)) {
+      this.globals.add(declaration);
+      return null;
+    }
+
+    return declaration;
   }
 
   @Override
   public Expression visitNonArrayVariableDeclaration(vrjParser.NonArrayVariableDeclarationContext ctx) {
     final String name = ctx.name().getText();
     final Symbol variable = this.symbols.resolve(name);
-    return new VariableStatement(variable, ctx.value == null ? null : this.visit(ctx.value));
+    final Expression value = ctx.value == null ? null : this.visit(ctx.value);
+    final Expression declaration = new VariableStatement(variable, value);
+
+    if (variable.flags.contains(SymbolFlag.GLOBAL)) {
+      this.globals.add(declaration);
+      return null;
+    }
+
+    return declaration;
   }
 
   @Override
