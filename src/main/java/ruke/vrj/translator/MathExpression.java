@@ -23,17 +23,31 @@ package ruke.vrj.translator;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-public class ReturnStatement implements Expression {
+public class MathExpression implements Expression {
 
-  public final Expression expression;
+  public enum Operator {
+    MODULO { @Override public final String toString() { return "%"; } },
+    ADDITION { @Override public final String toString() { return "+"; } },
+    SUBTRACTION { @Override public final String toString() { return "-"; } },
+    MULTIPLICATION { @Override public final String toString() { return "*"; } },
+    DIVISION { @Override public final String toString() { return "/"; } },
+  }
 
-  public ReturnStatement(final Expression expression) {
-    this.expression = expression;
+  public final Expression left;
+  public final Expression right;
+  public final Operator operator;
+
+  public MathExpression(final Expression left, final Operator operator, final Expression right) {
+    this.left = left;
+    this.operator = operator;
+    this.right = right;
   }
 
   @Override
   public final String toString() {
-    if (this.expression == null) return "return";
-    return "return " + this.expression.toString();
+    if (this.operator == Operator.MODULO) {
+      return String.format("ModuloReal(%s, %s)", this.left.toString(), this.right.toString());
+    }
+    return String.format("%s %s %s", this.left.toString(), this.operator.toString(), this.right.toString());
   }
 }

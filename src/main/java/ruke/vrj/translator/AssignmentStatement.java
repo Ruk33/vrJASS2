@@ -23,17 +23,22 @@ package ruke.vrj.translator;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-public class ReturnStatement implements Expression {
+public class AssignmentStatement implements Expression {
 
-  public final Expression expression;
+  public final Expression variable;
+  public final Expression value;
 
-  public ReturnStatement(final Expression expression) {
-    this.expression = expression;
+  public AssignmentStatement(final Expression variable, final Expression value) {
+    this.variable = variable;
+    this.value = value;
   }
 
   @Override
   public final String toString() {
-    if (this.expression == null) return "return";
-    return "return " + this.expression.toString();
+    return String.format(
+        "set %s = %s",
+        this.variable.toString(),
+        this.value.toString()
+    );
   }
 }

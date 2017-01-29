@@ -1,31 +1,47 @@
 package ruke.vrj.translator;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import org.junit.Assert;
 import org.junit.Test;
-import ruke.vrj.symbol.ScopeSymbol;
-import ruke.vrj.symbol.Symbol;
+import ruke.vrj.Symbol;
 
 /**
- * Created by Ruke on 23/09/2016.
+ * MIT License
+ *
+ * Copyright (c) 2017 Franco Montenegro
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 public class FunctionExpressionTest {
 
   @Test
   public void test() {
-    Symbol function = new ScopeSymbol("a");
+    final Symbol foo = new Symbol(null, "foo", "nothing", null, null);
+    Assert.assertEquals("foo()", new FunctionExpression(foo, null).toString());
 
-    Expression args = new ExpressionList().append(new RawExpression("my"))
-        .append(new RawExpression("arg"));
+    foo.addParam(new Symbol(foo, "bar", "nothing", null, null));
 
-    Assert.assertEquals(
-        "a(my, arg)",
-        new FunctionExpression().setSymbol(function).append(args).translate()
-    );
+    final Collection<Expression> args = new ArrayList<>();
+    args.add(new RawExpression("bar"));
 
-    Assert.assertEquals(
-        "a()",
-        new FunctionExpression().setSymbol(function).translate()
-    );
+    Assert.assertEquals("foo(bar)", new FunctionExpression(foo, args).toString());
   }
 
 }

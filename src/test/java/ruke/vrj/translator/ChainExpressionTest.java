@@ -1,5 +1,12 @@
 package ruke.vrj.translator;
 
+import com.google.common.collect.ImmutableSet;
+import java.util.ArrayList;
+import org.junit.Assert;
+import org.junit.Test;
+import ruke.vrj.Symbol;
+import ruke.vrj.SymbolFlag;
+
 /**
  * MIT License
  *
@@ -23,17 +30,23 @@ package ruke.vrj.translator;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-public class ReturnStatement implements Expression {
+public class ChainExpressionTest {
 
-  public final Expression expression;
+  @Test
+  public void test() {
+    final ArrayList<ChainableExpression> chain = new ArrayList<>();
 
-  public ReturnStatement(final Expression expression) {
-    this.expression = expression;
+    /*
+     * local someStruct foo
+     * foo.bar()
+     */
+    Symbol foo = new Symbol(null, "foo", "someStruct", ImmutableSet.of(SymbolFlag.VARIABLE, SymbolFlag.LOCAL), null);
+    Symbol bar = new Symbol(null, "bar", "nothing", ImmutableSet.of(SymbolFlag.FUNCTION), null);
+
+    chain.add(new VariableExpression(foo, null));
+    chain.add(new FunctionExpression(bar, new ArrayList<Expression>()));
+
+    Assert.assertEquals("bar(foo)", new ChainExpression(chain).toString());
   }
 
-  @Override
-  public final String toString() {
-    if (this.expression == null) return "return";
-    return "return " + this.expression.toString();
-  }
 }

@@ -1,5 +1,9 @@
 package ruke.vrj.translator;
 
+import org.junit.Assert;
+import org.junit.Test;
+import ruke.vrj.translator.LogicalExpression.Operator;
+
 /**
  * MIT License
  *
@@ -23,17 +27,14 @@ package ruke.vrj.translator;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-public class ReturnStatement implements Expression {
+public class LogicalExpressionTest {
 
-  public final Expression expression;
-
-  public ReturnStatement(final Expression expression) {
-    this.expression = expression;
+  @Test
+  public void test() {
+    final Expression foo = new RawExpression("foo");
+    final Expression bar = new RawExpression("bar");
+    Assert.assertEquals("foo or bar", new LogicalExpression(foo, Operator.OR, bar).toString());
+    Assert.assertEquals("foo and bar", new LogicalExpression(foo, Operator.AND, bar).toString());
   }
 
-  @Override
-  public final String toString() {
-    if (this.expression == null) return "return";
-    return "return " + this.expression.toString();
-  }
 }

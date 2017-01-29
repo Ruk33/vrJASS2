@@ -1,4 +1,7 @@
-package ruke.vrj.translator;
+package ruke.vrj.util;
+
+import ruke.vrj.Symbol;
+import ruke.vrj.SymbolFlag;
 
 /**
  * MIT License
@@ -23,17 +26,16 @@ package ruke.vrj.translator;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-public class ReturnStatement implements Expression {
+public class NameGenerator {
 
-  public final Expression expression;
+  public static String to(final Symbol symbol) {
+    final Symbol parent = symbol.parent;
 
-  public ReturnStatement(final Expression expression) {
-    this.expression = expression;
+    if (parent != null && parent.flags.contains(SymbolFlag.STRUCT)) {
+      return String.format("%s_%s", parent.name, symbol.name);
+    }
+
+    return symbol.name;
   }
 
-  @Override
-  public final String toString() {
-    if (this.expression == null) return "return";
-    return "return " + this.expression.toString();
-  }
 }

@@ -1,35 +1,53 @@
 package ruke.vrj.translator;
 
+import java.util.ArrayList;
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Created by Ruke on 23/09/2016.
+ * MIT License
+ *
+ * Copyright (c) 2017 Franco Montenegro
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 public class IfStatementTest {
 
   @Test
   public void test() {
-    Expression _if = new IfStatement();
-
-    _if.append(new RawExpression("myCondition"));
-
-    _if.append(new RawExpression("lorem"));
-    _if.append(new RawExpression("ipsum"));
-
-    _if.append(new ElseStatement().append(new RawExpression("dolor")));
-
-    _if.append(new ElseIfStatement().append(new RawExpression("myOtherCondition")));
+    final Expression condition = new RawExpression("true");
+    final ArrayList<Expression> body = new ArrayList<>();
 
     Assert.assertEquals(
-        "if myCondition then\n" +
-            "lorem\n" +
-            "ipsum\n" +
-            "elseif myOtherCondition then\n" +
-            "else\n" +
-            "dolor\n" +
-            "endif",
-        _if.translate()
+        "if true then\n" +
+            "\n" +
+        "endif",
+        new IfStatement(condition, body).toString()
+    );
+
+    body.add(new RawExpression("call foo()"));
+
+    Assert.assertEquals(
+        "if true then\n" +
+            "call foo()\n" +
+        "endif",
+        new IfStatement(condition, body).toString()
     );
   }
 

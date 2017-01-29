@@ -1,43 +1,48 @@
 package ruke.vrj.translator;
 
-import ruke.vrj.symbol.Symbol;
-
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
- * Created by Ruke on 23/09/2016.
+ * MIT License
+ *
+ * Copyright (c) 2017 Franco Montenegro
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
-public class ElseStatement extends Expression implements StatementContainer {
+public class ElseStatement implements Expression {
 
-  private Expression body;
+  public final ImmutableList<Expression> statements;
 
-  @Override
-  public boolean canDeclareVariables() {
-    return false;
-  }
-
-  public ElseStatement() {
-    body = new StatementList().setParent(this);
+  public ElseStatement(final Collection<Expression> statements) {
+    this.statements = ImmutableList.copyOf(statements);
   }
 
   @Override
-  public ArrayList<Symbol> getDeclaredVariables() {
-    return ((StatementList) body).getDeclaredVariables();
-  }
+  public final String toString() {
+    final Collection<String> body = new ArrayList<>(this.statements.size());
 
-  @Override
-  public ArrayList<Expression> getChilds() {
-    return ((StatementList) body).getChilds();
-  }
+    for (final Expression statement : this.statements) {
+      body.add(statement.toString());
+    }
 
-  @Override
-  public Expression append(Expression expression) {
-    body.append(expression);
-    return this;
-  }
-
-  @Override
-  public String translate() {
-    return "else\n" + body.translate();
+    return String.format("else\n%s", String.join("\n", body));
   }
 }

@@ -1,5 +1,9 @@
 package ruke.vrj.translator;
 
+import org.junit.Assert;
+import org.junit.Test;
+import ruke.vrj.Symbol;
+
 /**
  * MIT License
  *
@@ -23,17 +27,20 @@ package ruke.vrj.translator;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-public class ReturnStatement implements Expression {
+public class AssignmentStatementTest {
 
-  public final Expression expression;
+  @Test
+  public void test() {
+    final Symbol variableSymbol = new Symbol(null, "foo", "integer", null, null);
 
-  public ReturnStatement(final Expression expression) {
-    this.expression = expression;
+    final Expression index = new RawExpression("42");
+    final Expression value = new RawExpression("bar");
+
+    final Expression variable = new VariableExpression(variableSymbol, null);
+    final Expression variableArray = new VariableExpression(variableSymbol, index);
+
+    Assert.assertEquals("set foo = bar", new AssignmentStatement(variable, value).toString());
+    Assert.assertEquals("set foo[42] = bar", new AssignmentStatement(variableArray, value).toString());
   }
 
-  @Override
-  public final String toString() {
-    if (this.expression == null) return "return";
-    return "return " + this.expression.toString();
-  }
 }

@@ -23,17 +23,29 @@ package ruke.vrj.translator;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-public class ReturnStatement implements Expression {
+public class ComparisonExpression implements Expression {
 
-  public final Expression expression;
+  public enum Operator {
+    EQUAL { @Override public final String toString() { return "=="; } },
+    NOT_EQUAL { @Override public final String toString() { return "!="; } },
+    GREATER_THAN { @Override public final String toString() { return ">"; } },
+    GREATER_THAN_EQUAL { @Override public final String toString() { return ">="; } },
+    LOWER_THAN_EQUAL { @Override public final String toString() { return "<="; } },
+    LOWER_THAN { @Override public final String toString() { return "<"; } }
+  }
 
-  public ReturnStatement(final Expression expression) {
-    this.expression = expression;
+  public final Expression left;
+  public final Expression right;
+  public final Operator operator;
+
+  public ComparisonExpression(final Expression left, final Operator operator, final Expression right) {
+    this.left = left;
+    this.operator = operator;
+    this.right = right;
   }
 
   @Override
   public final String toString() {
-    if (this.expression == null) return "return";
-    return "return " + this.expression.toString();
+    return String.format("%s %s %s", this.left.toString(), this.operator.toString(), this.right.toString());
   }
 }

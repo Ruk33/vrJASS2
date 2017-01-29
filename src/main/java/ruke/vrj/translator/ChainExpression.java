@@ -1,5 +1,11 @@
 package ruke.vrj.translator;
 
+import com.google.common.collect.ImmutableList;
+import java.util.Collection;
+import java.util.Stack;
+import ruke.vrj.Symbol;
+import ruke.vrj.SymbolFlag;
+
 /**
  * MIT License
  *
@@ -23,17 +29,34 @@ package ruke.vrj.translator;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-public class ReturnStatement implements Expression {
+public class ChainExpression implements Expression, ChainableExpression {
 
-  public final Expression expression;
+  public final ImmutableList<ChainableExpression> expressions;
 
-  public ReturnStatement(final Expression expression) {
-    this.expression = expression;
+  public ChainExpression(final Collection<ChainableExpression> expressions) {
+    this.expressions = ImmutableList.copyOf(expressions);
+  }
+
+  @Override
+  public final Symbol getSymbol() {
+    return this.expressions.get(this.expressions.size() - 1).getSymbol();
   }
 
   @Override
   public final String toString() {
-    if (this.expression == null) return "return";
-    return "return " + this.expression.toString();
+    final ChainableExpression head = this.expressions.get(0);
+    final Stack<Expression> args = new Stack<>();
+
+    args.push(head);
+
+    for (final ChainableExpression member : this.expressions.subList(1, this.expressions.size()).reverse()) {
+      if (member.getSymbol().flags.contains(SymbolFlag.FUNCTION)) {
+        args.add(new FunctionExpression(member.getSymbol(), args));
+      } else {
+        args.add(new VariableExpression(member.getSymbol(), args.peek()));
+      }
+    }
+
+    return args.peek().toString();
   }
 }

@@ -1,5 +1,9 @@
 package ruke.vrj.translator;
 
+import java.util.ArrayList;
+import org.junit.Assert;
+import org.junit.Test;
+
 /**
  * MIT License
  *
@@ -23,17 +27,15 @@ package ruke.vrj.translator;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-public class ReturnStatement implements Expression {
+public class ElseStatementTest {
 
-  public final Expression expression;
+  @Test
+  public void test() {
+    final ArrayList<Expression> body = new ArrayList<>();
 
-  public ReturnStatement(final Expression expression) {
-    this.expression = expression;
+    body.add(new RawExpression("call foo()"));
+
+    Assert.assertEquals("else\ncall foo()", new ElseStatement(body).toString());
   }
 
-  @Override
-  public final String toString() {
-    if (this.expression == null) return "return";
-    return "return " + this.expression.toString();
-  }
 }

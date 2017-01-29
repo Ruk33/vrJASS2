@@ -1,5 +1,9 @@
 package ruke.vrj.translator;
 
+import org.junit.Assert;
+import org.junit.Test;
+import ruke.vrj.translator.MathExpression.Operator;
+
 /**
  * MIT License
  *
@@ -23,17 +27,18 @@ package ruke.vrj.translator;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-public class ReturnStatement implements Expression {
+public class MathExpressionTest {
 
-  public final Expression expression;
+  @Test
+  public void test() {
+    final Expression left = new RawExpression("foo");
+    final Expression right = new RawExpression("bar");
 
-  public ReturnStatement(final Expression expression) {
-    this.expression = expression;
+    Assert.assertEquals("ModuloReal(foo, bar)", new MathExpression(left, Operator.MODULO, right).toString());
+    Assert.assertEquals("foo + bar", new MathExpression(left, Operator.ADDITION, right).toString());
+    Assert.assertEquals("foo - bar", new MathExpression(left, Operator.SUBTRACTION, right).toString());
+    Assert.assertEquals("foo * bar", new MathExpression(left, Operator.MULTIPLICATION, right).toString());
+    Assert.assertEquals("foo / bar", new MathExpression(left, Operator.DIVISION, right).toString());
   }
 
-  @Override
-  public final String toString() {
-    if (this.expression == null) return "return";
-    return "return " + this.expression.toString();
-  }
 }

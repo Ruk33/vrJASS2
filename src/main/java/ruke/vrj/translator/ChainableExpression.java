@@ -1,5 +1,7 @@
 package ruke.vrj.translator;
 
+import ruke.vrj.Symbol;
+
 /**
  * MIT License
  *
@@ -23,17 +25,6 @@ package ruke.vrj.translator;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-public class ReturnStatement implements Expression {
-
-  public final Expression expression;
-
-  public ReturnStatement(final Expression expression) {
-    this.expression = expression;
-  }
-
-  @Override
-  public final String toString() {
-    if (this.expression == null) return "return";
-    return "return " + this.expression.toString();
-  }
+public interface ChainableExpression extends Expression {
+  Symbol getSymbol();
 }

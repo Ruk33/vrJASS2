@@ -1,40 +1,63 @@
 package ruke.vrj.translator;
 
-import ruke.vrj.symbol.Modifier;
+import ruke.vrj.Symbol;
+import ruke.vrj.SymbolFlag;
 
 /**
- * Created by Ruke on 23/09/2016.
+ * MIT License
+ *
+ * Copyright (c) 2017 Franco Montenegro
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
-public class VariableStatement extends Expression {
+public class VariableStatement implements Expression {
 
-  private Expression value;
+  public final Symbol variable;
+  public final Expression value;
 
-  public Expression getValue() {
-    return value;
-  }
-
-  @Override
-  public Expression append(Expression value) {
+  public VariableStatement(final Symbol variable, final Expression value) {
+    this.variable = variable;
     this.value = value;
-    return super.append(value);
   }
 
   @Override
-  public String translate() {
-    String type = getSymbol().getType().getName();
-    String name = getSymbol().getName();
+  public final String toString() {
+    final Symbol type = this.variable.children.resolve(this.variable.type);
+    final boolean isStruct = type.flags.contains(SymbolFlag.STRUCT);
+    final String translatedType = isStruct ? "integer" : this.variable.type;
 
-    String result = type + " " + name;
+    String declaration = translatedType + " ";
 
-    if (value != null) {
-      result += " = " + value.translate();
+    if (this.variable.flags.contains(SymbolFlag.LOCAL)) {
+      declaration = "local " + declaration;
     }
 
-    if (getSymbol().hasModifier(Modifier.LOCAL)) {
-      result = "local " + result;
+    if (this.variable.flags.contains(SymbolFlag.ARRAY)) {
+      declaration += "array ";
     }
 
-    return result;
+    declaration += this.variable.name;
+
+    if (this.value != null) {
+      declaration += " = " + this.value.toString();
+    }
+
+    return declaration;
   }
-
 }
