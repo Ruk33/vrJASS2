@@ -116,4 +116,41 @@ public class StructTest {
     );
   }
 
+  @Test
+  public void inheritance() {
+    final String code = String.join("\n",
+        "struct Person",
+        "endstruct",
+        "struct Foo extends Person",
+        "endstruct",
+        "struct Bar extends Person",
+        "endstruct",
+        "struct Baz",
+        "endstruct",
+        "function lorem takes nothing returns nothing",
+          "local Foo foo",
+          "local Bar bar",
+          "local Baz baz",
+          "local Person person = baz",
+          "set person = foo",
+          "set person = bar",
+          "set person = baz",
+        "endfunction"
+    );
+
+    final Compiler compiler = new Compiler();
+
+    compiler.compile(code);
+
+    Assert.assertEquals(2, compiler.getResults().size());
+    Assert.assertEquals(
+        "(13,22,25): Incompatible type",
+        compiler.getResults().get(0).toString()
+    );
+    Assert.assertEquals(
+        "(16,13,16): Incompatible type",
+        compiler.getResults().get(1).toString()
+    );
+  }
+
 }

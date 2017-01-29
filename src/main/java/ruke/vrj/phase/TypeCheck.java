@@ -454,8 +454,9 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
   public Symbol visitSetVariableStatement(vrjParser.SetVariableStatementContext ctx) {
     final Symbol variable = this.visit(ctx.variable);
     final Symbol value = this.visit(ctx.value);
+    final Symbol valueType = this.symbols.resolve(value.type);
 
-    if (!value.equals(Symbol.NOTHING) && !TypeChecker.compatible(variable, value)) {
+    if (!value.equals(Symbol.NOTHING) && !TypeChecker.compatible(variable, valueType)) {
       this.results.add(new Result(
           ctx.getStart().getInputStream().getSourceName(),
           ctx.getStart().getLine(),
