@@ -2,6 +2,7 @@ package ruke.vrj.translator;
 
 import ruke.vrj.Symbol;
 import ruke.vrj.SymbolFlag;
+import ruke.vrj.util.NameGenerator;
 
 /**
  * MIT License
@@ -48,11 +49,14 @@ public class VariableStatement implements Expression {
       declaration = "local " + declaration;
     }
 
-    if (this.variable.flags.contains(SymbolFlag.ARRAY)) {
+    final boolean isProperty = this.variable.flags.contains(SymbolFlag.PROPERTY);
+    final boolean notStatic = !this.variable.flags.contains(SymbolFlag.STATIC);
+
+    if (this.variable.flags.contains(SymbolFlag.ARRAY) || (isProperty && notStatic)) {
       declaration += "array ";
     }
 
-    declaration += this.variable.name;
+    declaration += NameGenerator.to(this.variable);
 
     if (this.value != null) {
       declaration += " = " + this.value.toString();
