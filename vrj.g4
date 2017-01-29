@@ -1,165 +1,259 @@
+/**
+ * MIT License
+ *
+ * Copyright (c) 2017 Franco Montenegro
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 grammar vrj;
 
-init:
-    ( typeDefinition
-    | nativeDefinition
-    | globalDefinition
-    | functionDefinition
-    | libraryDefinition
-    | structDefinition
-    | NL
-    )*
-    EOF
-    ;
+init
+  : (topDeclaration | NL)* EOF
+  ;
 
-visibility: 'private' | 'public';
+topDeclaration
+  : libraryDeclaration
+  | structDeclaration
+  | typeDeclaration
+  | nativeDeclaration
+  | functionDeclaration
+  | globalDeclaration
+  ;
 
-member: variableExpression | functionExpression;
+visibility
+  : 'private'
+  | 'public'
+  ;
 
-memberExpression: member ('.' member)+;
+name
+  : ID
+  ;
 
-name: ID;
+type
+  : expression
+  | 'nothing'
+  ;
 
-type: memberExpression | name | 'nothing';
+param
+  : type name
+  ;
 
-param: type name;
+paramList
+  : (param (',' param)*)
+  | 'nothing'
+  ;
 
-paramList:
-    ( param (',' param)* )
-    | 'nothing'
-    ;
+typeDeclaration
+  : 'type' typeName=name ('extends' typeExtends=name)? NL
+  ;
 
-typeDefinition: 'type' typeName=name ('extends' typeExtends=name) NL;
+functionSignature
+  : name 'takes' paramList 'returns' type NL
+  ;
 
-functionSignature: name 'takes' paramList 'returns' type NL;
+nativeDeclaration
+  : ('constant')? 'native' functionSignature
+  ;
 
-nativeDefinition: ('constant')? 'native' functionSignature;
+arguments
+  : '(' expressionList? ')'
+  ;
 
-arguments: '(' expressionList? ')';
+expression
+  : '(' expression ')' #ParenthesisExpression
+  | left=expression '.' right=expression #ChainExpression
+  | variable=name ('[' index=expression ']')? #VariableExpression
+  | function=name arguments #FunctionExpression
+  | '-' expression #NegativeExpression
+  | 'not' expression #NotExpression
+  | left=expression '%' right=expression #ModuloExpression
+  | left=expression operator=('/' | '*') right=expression #DivMultExpression
+  | left=expression operator=('+' | '-') right=expression #SumSubExpression
+  | left=expression operator=('==' | '!=' | '<=' | '<' | '>' | '>=') right=expression #ComparisonExpression
+  | left=expression operator=('or' | 'and') right=expression #LogicalExpression
+  | 'function' code=expression #CodeExpression
+  | ('true' | 'false') #BooleanExpression
+  | 'null' #NullExpression
+  | STRING #StringExpression
+  | REAL #RealExpression
+  | INT #IntegerExpression
+  ;
 
-functionExpression: name arguments;
+expressionList
+  : expression (',' expression)*
+  ;
 
-variableExpression: name ('[' expression ']')?;
+variableDeclaration
+  : type 'array' name NL #ArrayVariableDeclaration
+  | type name ('=' value=expression)? NL #NonArrayVariableDeclaration
+  ;
 
-expression:
-     '(' expression ')' #Parenthesis
-    | '-' expression #Negative
-    | 'not' expression #Not
-    | expression '%' expression #Mod
-    | expression '/' expression #Div
-    | expression '*' expression #Mult
-    | expression '+' expression #Sum
-    | expression '-' expression #Sub
-    | memberExpression #IgnoreMemberExpression
-    | variableExpression #IgnoreVariableExpression
-    | functionExpression #IgnoreFunctionExpression
-    | expression operator=('=='|'!='|'<='|'<'|'>'|'>=') expression #Comparison
-    | expression operator=('or'|'and') expression #Logical
-    | 'function' name #Code
-    | ('true'|'false') #Boolean
-    | 'null' #Null
-    | STRING #String
-    | REAL #Real
-    | INT #Integer
-    ;
+globalVariableDeclaration
+  : visibility? (constant='constant')? variableDeclaration
+  ;
 
-expressionList: expression (',' expression)*;
+globalDeclaration
+  : 'globals' NL
+      (globalVariableDeclaration | NL)*
+    'endglobals' NL
+  ;
 
-variableStatement: type (array='array')? name ('=' expression)? NL;
+loopStatement
+  : 'loop' NL
+      statements
+    'endloop' NL
+  ;
 
-globalVariable: visibility? (constant='constant')? variableStatement;
+elseIfStatement
+  : 'elseif' condition=expression 'then' NL statements
+  ;
 
-globalDefinition:
-    'globals' NL
-        (globalVariable | NL)*
-    'endglobals' NL;
+elseStatement
+  : 'else' NL statements
+  ;
 
-loopStatement:
-    'loop' NL
-        statements
-    'endloop' NL;
-
-elseIfStatement: 'elseif' expression 'then' NL statements;
-
-elseStatement: 'else' NL statements;
-
-ifStatement:
-    (sstatic='static')? 'if' expression 'then' NL
-        statements
+ifStatement
+  : (sstatic='static')? 'if' condition=expression 'then' NL
+      statements
     elseIfStatement*
     elseStatement?
-    'endif' NL;
+    'endif' NL
+  ;
 
-localVariable: 'local' variableStatement;
-setVariable: 'set' (variableExpression | memberExpression) '=' expression NL;
-exitwhen: 'exitwhen' expression NL;
-functionCall: 'call' (functionExpression | memberExpression) NL;
-returnStatement: 'return' expression? NL;
+localVariableDeclaration
+  : 'local' variableDeclaration
+  ;
 
-statement:
-      localVariable
-    | setVariable
-    | exitwhen
-    | functionCall
-    | returnStatement
-    | ifStatement
-    | loopStatement
-    ;
+setVariableStatement
+  : 'set' variable=expression '=' value=expression NL
+  ;
 
-statements: (statement | NL)*;
+exitWhenStatement
+  : 'exitwhen' condition=expression NL
+  ;
 
-functionDefinition:
-    visibility? 'function' functionSignature
-        statements
-    'endfunction' NL;
+functionCallStatement
+  : 'call' function=expression NL
+  ;
 
-libraryRequirementExpression: name (',' name)*;
+returnStatement
+  : 'return' expression? NL
+  ;
 
-libraryBody:
-    ( globalDefinition
-    | functionDefinition
-    | structDefinition
+statement
+  : localVariableDeclaration
+  | setVariableStatement
+  | exitWhenStatement
+  | functionCallStatement
+  | returnStatement
+  | ifStatement
+  | loopStatement
+  ;
+
+statements
+  : (statement | NL)*
+  ;
+
+functionDeclaration
+  : visibility? 'function' functionSignature
+      statements
+    'endfunction' NL
+  ;
+
+libraryRequirementsExpression
+  : name (',' name)*
+  ;
+
+libraryBody
+  : ( globalDeclaration
+    | functionDeclaration
+    | structDeclaration
     | NL
     )*
-    ;
+  ;
 
-libraryDefinition:
-    'library' name ('initializer' initializer=name)? ('requires' libraryRequirementExpression)? NL
-        libraryBody
-     'endlibrary' NL;
+libraryDeclaration
+  : 'library' name ('initializer' initializer=name)? ('requires' libraryRequirementsExpression)? NL
+      libraryBody
+    'endlibrary' NL
+  ;
 
- propertyStatement: visibility? (sstatic='static')? variableStatement;
+propertyDeclaration
+  : visibility? (sstatic='static')? variableDeclaration
+  ;
 
- methodDefinition:
-     visibility? (sstatic='static')? 'method' (operator='operator')? functionSignature
-        statements
-     'endmethod' NL;
+methodDeclaration
+  : visibility? (sstatic='static')? 'method' (operator='operator')? functionSignature
+      statements
+    'endmethod' NL
+  ;
 
-extendable:
-      'array'
-    | name
-    | memberExpression
-    ;
+extendsFromExpression
+  : 'array'
+  | expression
+  ;
 
-structBody:
-    ( propertyStatement
-    | methodDefinition
+structBody
+  : ( propertyDeclaration
+    | methodDeclaration
     | NL
     )*
-    ;
+  ;
 
-structDefinition:
-    visibility? 'struct' name ('extends' extendsFrom=extendable)? NL
-        structBody
-    'endstruct' NL;
+structDeclaration
+  : visibility? 'struct' name ('extends' extendsFromExpression)? NL
+      structBody
+    'endstruct' NL
+  ;
 
-STRING: '"' .*? '"';
-REAL: [0-9]+ '.' [0-9]* | '.'[0-9]+;
-INT: [0-9]+ | '0x' [0-9a-fA-F]+ | '\'' . . . . '\'' | '\'' . '\'';
+STRING
+  : '"' .*? '"'
+  ;
 
-NL: [\r\n]+;
-ID: [a-zA-Z_][a-zA-Z0-9_]*;
+// Credits to WurstScript
+REAL
+  : [0-9]+ '.' [0-9]*
+  | '.'[0-9]+
+  ;
 
-WS : [ \t]+ -> channel(HIDDEN);
-COMMENT : '/*' .*? '*/' -> channel(HIDDEN);
+// Credits to WurstScript
+INT
+  : [0-9]+
+  | '0x' [0-9a-fA-F]+
+  | '\'' . . . . '\''
+  | '\'' . '\''
+  ;
+
+NL
+  : [\r\n]+
+  ;
+
+ID
+  : [a-zA-Z_][a-zA-Z0-9_]*
+  ;
+
+WS
+  : [ \t]+ -> channel(HIDDEN)
+  ;
+
+COMMENT
+  : '/*' .*? '*/' -> channel(HIDDEN)
+  ;
+
 LINE_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN);
