@@ -16,7 +16,7 @@ dependencies {
 }
 
 jar {
-    baseName = 'vrj'
+    baseName = 'vrjc'
     manifest {
         attributes 'Main-Class': 'ruke.vrj.Main'
     }
