@@ -9,8 +9,11 @@ import ruke.vrj.SymbolTable;
 import ruke.vrj.antlr.vrjBaseVisitor;
 import ruke.vrj.antlr.vrjParser;
 import ruke.vrj.antlr.vrjParser.ExpressionContext;
+import ruke.vrj.antlr.vrjParser.FunctionDeclarationContext;
+import ruke.vrj.antlr.vrjParser.GlobalDeclarationContext;
 import ruke.vrj.antlr.vrjParser.MethodDeclarationContext;
 import ruke.vrj.antlr.vrjParser.StatementContext;
+import ruke.vrj.antlr.vrjParser.StructDeclarationContext;
 import ruke.vrj.antlr.vrjParser.TopDeclarationContext;
 import ruke.vrj.translator.AssignmentStatement;
 import ruke.vrj.translator.ChainExpression;
@@ -35,6 +38,7 @@ import ruke.vrj.translator.NotExpression;
 import ruke.vrj.translator.ParenthesisExpression;
 import ruke.vrj.translator.RawExpression;
 import ruke.vrj.translator.ReturnStatement;
+import ruke.vrj.translator.StatementList;
 import ruke.vrj.translator.VariableExpression;
 import ruke.vrj.translator.VariableStatement;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -89,6 +93,78 @@ public class Translate extends vrjBaseVisitor<Expression> {
         "\n" +
         String.join("\n", program)
     );
+  }
+
+  @Override
+  public Expression visitLibraryBody(vrjParser.LibraryBodyContext ctx) {
+    final Collection<Expression> statements = new ArrayList<>();
+
+    if (ctx.globalDeclaration() != null) {
+      for (final GlobalDeclarationContext global : ctx.globalDeclaration()) {
+        this.visit(global);
+      }
+    }
+
+    if (ctx.functionDeclaration() != null) {
+      for (final FunctionDeclarationContext function : ctx.functionDeclaration()) {
+        statements.add(this.visit(function));
+      }
+    }
+
+    if (ctx.structDeclaration() != null) {
+      for (final StructDeclarationContext struct : ctx.structDeclaration()) {
+        statements.add(this.visit(struct));
+      }
+    }
+
+    if (ctx.scopeDeclaration() != null) {
+      for (final vrjParser.ScopeDeclarationContext scope : ctx.scopeDeclaration()) {
+        statements.add(this.visit(scope));
+      }
+    }
+
+    return new StatementList(statements);
+  }
+
+  @Override
+  public Expression visitScopeBody(vrjParser.ScopeBodyContext ctx) {
+    final Collection<Expression> statements = new ArrayList<>();
+
+    if (ctx.globalDeclaration() != null) {
+      for (final GlobalDeclarationContext global : ctx.globalDeclaration()) {
+        this.visit(global);
+      }
+    }
+
+    if (ctx.functionDeclaration() != null) {
+      for (final FunctionDeclarationContext function : ctx.functionDeclaration()) {
+        statements.add(this.visit(function));
+      }
+    }
+
+    if (ctx.structDeclaration() != null) {
+      for (final StructDeclarationContext struct : ctx.structDeclaration()) {
+        statements.add(this.visit(struct));
+      }
+    }
+
+    if (ctx.scopeDeclaration() != null) {
+      for (final vrjParser.ScopeDeclarationContext scope : ctx.scopeDeclaration()) {
+        statements.add(this.visit(scope));
+      }
+    }
+
+    return new StatementList(statements);
+  }
+
+  @Override
+  public Expression visitScopeDeclaration(vrjParser.ScopeDeclarationContext ctx) {
+    return this.visit(ctx.scopeBody());
+  }
+
+  @Override
+  public Expression visitLibraryDeclaration(vrjParser.LibraryDeclarationContext ctx) {
+    return this.visit(ctx.libraryBody());
   }
 
   @Override
