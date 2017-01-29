@@ -159,12 +159,32 @@ public class Translate extends vrjBaseVisitor<Expression> {
 
   @Override
   public Expression visitScopeDeclaration(vrjParser.ScopeDeclarationContext ctx) {
-    return this.visit(ctx.scopeBody());
+    final String name = ctx.name(0).getText();
+    final Symbol scope = this.symbols.resolve(name);
+
+    final SymbolTable prevSymbols = this.symbols;
+    this.symbols = scope.children;
+
+    final Expression result = this.visit(ctx.scopeBody());
+
+    this.symbols = prevSymbols;
+
+    return result;
   }
 
   @Override
   public Expression visitLibraryDeclaration(vrjParser.LibraryDeclarationContext ctx) {
-    return this.visit(ctx.libraryBody());
+    final String name = ctx.name(0).getText();
+    final Symbol library = this.symbols.resolve(name);
+
+    final SymbolTable prevSymbols = this.symbols;
+    this.symbols = library.children;
+
+    final Expression result = this.visit(ctx.libraryBody());
+
+    this.symbols = prevSymbols;
+
+    return result;
   }
 
   @Override
