@@ -1,61 +1,56 @@
 package ruke.vrj.translator;
 
-import ruke.vrj.symbol.Symbol;
-
+import com.google.common.collect.ImmutableList;
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
- * Created by Ruke on 23/09/2016.
+ * MIT License
+ *
+ * Copyright (c) 2017 Franco Montenegro
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
-public class IfStatement extends Expression implements StatementContainer {
+public class IfStatement implements Expression {
 
-  protected Expression condition;
-  protected Expression body;
-  protected Expression _else;
+  public final Expression condition;
+  public final ImmutableList<Expression> statements;
 
-  public IfStatement() {
-    body = new StatementList().setParent(this);
+  public IfStatement(final Expression condition, final Collection<Expression> statements) {
+    this.condition = condition;
+    this.statements = ImmutableList.copyOf(statements);
   }
 
   @Override
-  public boolean canDeclareVariables() {
-    return false;
-  }
+  public final String toString() {
+    final Collection<String> body = new ArrayList<>(this.statements.size());
 
-  @Override
-  public ArrayList<Symbol> getDeclaredVariables() {
-    return ((StatementList) body).getDeclaredVariables();
-  }
-
-  @Override
-  public ArrayList<Expression> getChilds() {
-    return ((StatementList) body).getChilds();
-  }
-
-  @Override
-  public Expression append(Expression expression) {
-    if (condition == null) {
-      condition = expression;
-    } else if (expression instanceof ElseStatement) {
-      _else = expression;
-    } else {
-      body.append(expression);
-      return this;
+    for (final Expression statement : this.statements) {
+      body.add(statement.toString());
     }
 
-    return super.append(expression);
-  }
-
-  @Override
-  public String translate() {
     return String.format(
         "if %s then\n" +
-            "%s" +
-            "%s" +
-            "endif",
-        condition.translate(),
-        body.translate(),
-        _else == null ? "" : _else.translate()
+          "%s\n" +
+        "endif",
+        this.condition.toString(),
+        String.join("\n", body)
     );
   }
 }

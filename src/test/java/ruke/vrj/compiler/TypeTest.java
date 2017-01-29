@@ -4,41 +4,60 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Created by Ruke on 18/12/2016.
+ * MIT License
+ *
+ * Copyright (c) 2017 Franco Montenegro
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 public class TypeTest {
 
   @Test
-  public void checkAlreadyDefined() {
-    String code = String.join("\n",
-        "type buff extends integer",
-        "type buff extends integer",
-        "type bar extends integer"
+  public void define() {
+    final String code = String.join("\n",
+        "type foo",
+        "type bar extends foo"
     );
 
-    Compiler compiler = new Compiler();
+    final Compiler compiler = new Compiler();
+
     compiler.compile(code);
 
-    Assert.assertEquals(1, compiler.getAllErrors().size());
-    Assert.assertEquals(
-        "2:5 - Type buff is already defined",
-        compiler.getAllErrors().get(0).getMessage()
-    );
+    Assert.assertTrue(compiler.getResults().isEmpty());
   }
 
   @Test
-  public void checkDefined() {
-    String code = String.join("\n",
-        "type lorem extends ipsum"
+  public void alreadyDefined() {
+    final String code = String.join("\n",
+        "type foo",
+        "type foo",
+        "type bar"
     );
 
-    Compiler compiler = new Compiler();
+    final Compiler compiler = new Compiler();
+
     compiler.compile(code);
 
-    Assert.assertEquals(1, compiler.getAllErrors().size());
+    Assert.assertEquals(1, compiler.getResults().size());
     Assert.assertEquals(
-        "1:19 - ipsum is not defined",
-        compiler.getAllErrors().get(0).getMessage()
+        "(2,5,8): Symbol foo is already defined in (1,5,8)",
+        compiler.getResults().get(0).toString()
     );
   }
 
