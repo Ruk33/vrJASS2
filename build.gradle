@@ -27,3 +27,9 @@ jar {
 compileJava {
     sourceCompatibility = '1.8'
 }
+
+task buildGrammar (type:Exec, description: 'Build ANTLR grammar') {
+    commandLine 'java', '-jar', 'bin/antlr.jar', '-o', 'src/main/java/ruke/vrj/antlr', '-package', 'ruke.vrj.antlr', '-Dlanguage=Java', '-encoding', 'utf-8', '-visitor', '-no-listener', '-lib', '.', 'vrj.g4'
+}
+
+compileJava.dependsOn buildGrammar
