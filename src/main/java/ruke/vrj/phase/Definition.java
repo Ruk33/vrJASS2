@@ -129,6 +129,46 @@ public class Definition extends vrjBaseVisitor<Symbol> {
   }
 
   @Override
+  public Symbol visitScopeDeclaration(vrjParser.ScopeDeclarationContext ctx) {
+    final String name = ctx.name(0).getText();
+    final Symbol defined = this.symbols.resolve(name);
+
+    if (!defined.equals(Symbol.NOTHING)) {
+      this.addAlreadyDefiedResult(
+          ctx,
+          ctx.name(0).getStart().getCharPositionInLine(),
+          ctx.name(0).getStart().getCharPositionInLine() + name.length(),
+          defined
+      );
+
+      return null;
+    }
+
+    final Symbol scope = new Symbol(
+        this.symbols.owner,
+        name,
+        "nothing",
+        ImmutableSet.of(SymbolFlag.SCOPE),
+        ctx.name(0)
+    );
+
+    if (ctx.initializer != null) {
+      scope.initializer = ctx.initializer.getText();
+    }
+
+    this.symbols.define(scope);
+
+    final SymbolTable prevSymbols = this.symbols;
+    this.symbols = scope.children;
+
+    this.visit(ctx.scopeBody());
+
+    this.symbols = prevSymbols;
+
+    return scope;
+  }
+
+  @Override
   public Symbol visitStructDeclaration(vrjParser.StructDeclarationContext ctx) {
     final String name = ctx.name().getText();
     final Symbol defined = this.symbols.resolve(name);
