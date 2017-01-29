@@ -44,7 +44,6 @@ public class FunctionDefinition implements Expression {
 
   private final Expression buildDynamicDispatchBlock(Collection<Expression> args) {
     final List<Expression> statements = new ArrayList<>(this.function.implementations.size());
-    final ImmutableList<Symbol> implementationsList = this.function.implementations.asList();
     final boolean needsReturn = !this.function.type.equals("nothing");
     Expression condition;
 
