@@ -29,6 +29,7 @@ init
 
 topDeclaration
   : libraryDeclaration
+  | scopeDeclaration
   | structDeclaration
   | typeDeclaration
   | nativeDeclaration
@@ -184,6 +185,7 @@ libraryBody
   : ( globalDeclaration
     | functionDeclaration
     | structDeclaration
+    | scopeDeclaration
     | NL
     )*
   ;
@@ -192,6 +194,21 @@ libraryDeclaration
   : 'library' name ('initializer' initializer=name)? ('requires' libraryRequirementsExpression)? NL
       libraryBody
     'endlibrary' NL
+  ;
+
+scopeBody
+  : ( functionDeclaration
+    | structDeclaration
+    | globalDeclaration
+    | scopeDeclaration
+    | NL
+    )*
+  ;
+
+scopeDeclaration
+  : 'scope' name ('initializer' initializer=name)? NL
+      scopeBody
+    'endscope' NL
   ;
 
 propertyDeclaration
