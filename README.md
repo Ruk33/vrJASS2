@@ -6,8 +6,19 @@ This is the new version of my compiler vrJASS. It aims to have a very high
 percentage of compatibility with vJASS. In fact, that is the primary goal of 
 this project.
 
+How to compile grammar?
+=======================
+ANTLR Version: 4.5.3
+
+```
+cd path/to/vrj
+java -jar bin/antlr.jar -o src/main/java/ruke/vrj/antlr -package ruke.vrj.antlr -Dlanguage=Java -encoding utf-8 -visitor -no-listener -lib . vrj.g4
+```
+
 How to compile?
 ===============
+Requires compiled grammar (see above).
+
 ```
 cd path/to/vrj
 gradle build
