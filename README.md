@@ -6,6 +6,11 @@ This is the new version of my compiler vrJASS. It aims to have a very high
 percentage of compatibility with vJASS. In fact, that is the primary goal of 
 this project.
 
+Goals
+=====
+1. 100% compatibility with vJASS
+2. LanguageServer (service to provide autocompletes, errors, etc. in editors)
+
 How to manually compile grammar?
 ================================
 ANTLR Version: 4.5.3
@@ -84,6 +89,22 @@ Great!, here are a few steps:
 
 If you're not sure of your code, don't worry, send a pull request 
 and we will check it together ^^
+
+Want to suggest a feature?
+==========================
+Great!, here are a few steps:
+
+1. Create an issue
+2. Describe the feature
+3. Describe the problem that solves
+4. Write a few usage examples
+5. Describe how could it be translated into raw JASS (optional)
+
+Please keep in mind that not all feature suggestions are going to be implemented or 
+that it could take a while to do so.
+
+**Important: your feature cannot change or break the behavior of vJASS code
+(remember, vrJASS2' primary goal is to achieve full compatibility with vJASS).**
 
 Licence
 =======
