@@ -33,13 +33,6 @@ checkstyle {
     toolVersion '7.5'
 }
 
-tasks.withType(Checkstyle) {
-    reports {
-        xml.enabled false
-        html.enabled false
-    }
-}
-
 task buildGrammar (type:Exec, description: 'Build ANTLR grammar') {
     commandLine 'java', '-jar', 'bin/antlr.jar', '-o', 'src/main/java/ruke/vrj/antlr', '-package', 'ruke.vrj.antlr', '-Dlanguage=Java', '-encoding', 'utf-8', '-visitor', '-no-listener', '-lib', '.', 'vrj.g4'
 }
