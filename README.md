@@ -1,4 +1,5 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/e66538f249744847b51ef500234b40ad)](https://www.codacy.com/app/franco-montenegro-ruke/vrJASS2?utm_source=github.com&utm_medium=referral&utm_content=Ruk33/vrJASS2&utm_campaign=badger)
+[![Build Status](https://travis-ci.org/Ruk33/vrJASS2.svg?branch=master)](https://travis-ci.org/Ruk33/vrJASS2)
 
 vrJASS2
 =======
@@ -54,7 +55,7 @@ will be translated.
 
 Code style
 ==========
-[https://google.github.io/styleguide/javaguide.html](Google Java Style)
+[Google Java Style](https://google.github.io/styleguide/javaguide.html)
 
 Code style check
 ================
