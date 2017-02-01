@@ -52,6 +52,22 @@ will be translated.
 - **src/main/java/ruke/vrj/util**
 - **src/main/java/ruke/vrj/exceptions**
 
+Code style
+==========
+[https://google.github.io/styleguide/javaguide.html](Google Java Style)
+
+Code style check
+================
+```
+gradle check
+```
+
+Code style auto fix
+===================
+```
+java -jar bin/google-java-format.java --relace path/to/vrj/**/*.java
+```
+
 Symbol
 ======
 It will contain information (for example, where it was declared) about 
