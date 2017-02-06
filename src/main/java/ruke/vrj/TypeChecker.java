@@ -44,7 +44,9 @@ public class TypeChecker {
       return false;
     }
 
-    for (int i = 0, max = function.params.size(); i < max; i++) {
+    final int functionParamsCount = function.params.size();
+
+    for (int i = 0; i < functionParamsCount; i++) {
       if (args.get(i).flags.contains(SymbolFlag.ARRAY)) {
         return false;
       }
