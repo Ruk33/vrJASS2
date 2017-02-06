@@ -1,6 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'idea'
-apply plugin: 'checkstyle'
+apply plugin: 'net.anshulverma.gradle.estilo'
 
 repositories {
     mavenCentral()
@@ -16,6 +16,16 @@ dependencies {
     compile group: 'com.eclipsesource.minimal-json', name: 'minimal-json', version: '0.9.4'
 }
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'net.anshulverma.gradle:gradle-estilo-plugin:0.4.8'
+    }
+}
+
 jar {
     baseName = 'vrjc'
     manifest {
@@ -29,8 +39,18 @@ compileJava {
     sourceCompatibility = '1.8'
 }
 
-checkstyle {
-    toolVersion '7.5'
+estilo {
+    source 'google'
+
+    suppressions {
+        prefix('antl') {
+            checks('')
+        }
+    }
+
+    checks {
+        CustomImportOrder(override: true) {}
+    }
 }
 
 task buildGrammar (type:Exec, description: 'Build ANTLR grammar') {
