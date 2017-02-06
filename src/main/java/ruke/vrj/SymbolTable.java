@@ -7,25 +7,22 @@ import java.util.List;
 /**
  * MIT License
  *
- * Copyright (c) 2017 Franco Montenegro
+ * <p>Copyright (c) 2017 Franco Montenegro</p>
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:</p>
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * <p>The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.</p>
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
  */
 public class SymbolTable {
 
@@ -33,6 +30,11 @@ public class SymbolTable {
   public final Symbol owner;
   private ImmutableMap<String, Symbol> symbols;
 
+  /**
+   * Create symbol table.
+   * @param parent Parent of the symbol table
+   * @param owner Symbol owning symbol table (for example, an struct)
+   */
   public SymbolTable(final SymbolTable parent, final Symbol owner) {
     this.parent = parent;
     this.owner = owner;
@@ -43,14 +45,17 @@ public class SymbolTable {
     }
   }
 
+  /**
+   * Create symbol table without parent & owner.
+   */
   public SymbolTable() {
     this(null, null);
   }
 
   /**
-   * Copy only the symbols of a SymbolTable (ignore parent & owner)
-   * @param copy
-   * @return
+   * Copy only the symbols of a SymbolTable (ignore parent & owner).
+   * @param copy Which symbol table to copy
+   * @return Copied symbol table
    */
   public static SymbolTable copyOf(final SymbolTable copy) {
     final SymbolTable result = new SymbolTable();
@@ -59,13 +64,19 @@ public class SymbolTable {
   }
 
   public final void define(final String name, final Symbol symbol) {
-    this.symbols = ImmutableMap.<String, Symbol>builder().putAll(this.symbols).put(name, symbol).build();
+    this.symbols =
+        ImmutableMap.<String, Symbol>builder().putAll(this.symbols).put(name, symbol).build();
   }
 
   public final void define(final Symbol symbol) {
     this.define(symbol.name, symbol);
   }
 
+  /**
+   * Find symbol in symbol table.
+   * @param name Name to search for
+   * @return Symbol (Symbol.NOTHING is returned if the symbol wasn't found)
+   */
   public final Symbol resolve(final String name) {
     if (name.contains(".")) {
       // ( 1 ) some.chain.expression
@@ -87,5 +98,4 @@ public class SymbolTable {
 
     return result;
   }
-
 }

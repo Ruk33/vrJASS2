@@ -15,25 +15,22 @@ import ruke.vrj.compiler.Result;
 /**
  * MIT License
  *
- * Copyright (c) 2017 Franco Montenegro
+ * <p>Copyright (c) 2017 Franco Montenegro</p>
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:</p>
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * <p>The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.</p>
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
  */
 public class TypeCheck extends vrjBaseVisitor<Symbol> {
 
@@ -43,17 +40,21 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
   private Symbol real;
   private Symbol string;
   private Symbol code;
-  private Symbol _boolean;
-  private Symbol _null;
+  private Symbol booleanType;
+  private Symbol nullType;
 
+  /**
+   * Create a type check visitor.
+   * @param symbols Symbols
+   */
   public TypeCheck(final SymbolTable symbols) {
     this.symbols = symbols;
     this.integer = symbols.resolve("integer");
     this.real = symbols.resolve("real");
     this.string = symbols.resolve("string");
     this.code = symbols.resolve("code");
-    this._boolean = symbols.resolve("boolean");
-    this._null = symbols.resolve("null");
+    this.booleanType = symbols.resolve("boolean");
+    this.nullType = symbols.resolve("null");
   }
 
   public ArrayList<Result> getResults() {
@@ -62,25 +63,25 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
 
   private final void checkForNumeric(final ParserRuleContext ctx, final Symbol expression) {
     if (!TypeChecker.isValidNumber(expression)) {
-      this.results.add(new Result(
-          ctx.getStart().getInputStream().getSourceName(),
-          ctx.getStart().getLine(),
-          ctx.getStart().getCharPositionInLine(),
-          ctx.getStart().getCharPositionInLine() + ctx.getText().length(),
-          "Expected number"
-      ));
+      this.results.add(
+          new Result(
+              ctx.getStart().getInputStream().getSourceName(),
+              ctx.getStart().getLine(),
+              ctx.getStart().getCharPositionInLine(),
+              ctx.getStart().getCharPositionInLine() + ctx.getText().length(),
+              "Expected number"));
     }
   }
 
   private final void checkForBoolean(final ParserRuleContext ctx, final Symbol expression) {
-    if (!TypeChecker.compatible(this._boolean, expression)) {
-      this.results.add(new Result(
-          ctx.getStart().getInputStream().getSourceName(),
-          ctx.getStart().getLine(),
-          ctx.getStart().getCharPositionInLine(),
-          ctx.getStart().getCharPositionInLine() + ctx.getText().length(),
-          "Expected boolean expression"
-      ));
+    if (!TypeChecker.compatible(this.booleanType, expression)) {
+      this.results.add(
+          new Result(
+              ctx.getStart().getInputStream().getSourceName(),
+              ctx.getStart().getLine(),
+              ctx.getStart().getCharPositionInLine(),
+              ctx.getStart().getCharPositionInLine() + ctx.getText().length(),
+              "Expected boolean expression"));
     }
   }
 
@@ -93,30 +94,31 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
       final Symbol initializer = library.children.resolve(library.initializer);
 
       if (!TypeChecker.isValidInitializer(initializer)) {
-        this.results.add(new Result(
-            ctx.getStart().getInputStream().getSourceName(),
-            ctx.getStart().getLine(),
-            ctx.initializer.getStart().getCharPositionInLine(),
-            ctx.initializer.getStart().getCharPositionInLine() + library.initializer.length(),
-            "Invalid initializer. It must be a function with no parameters"
-        ));
+        this.results.add(
+            new Result(
+                ctx.getStart().getInputStream().getSourceName(),
+                ctx.getStart().getLine(),
+                ctx.initializer.getStart().getCharPositionInLine(),
+                ctx.initializer.getStart().getCharPositionInLine() + library.initializer.length(),
+                "Invalid initializer. It must be a function with no parameters"));
       }
     }
 
-    if (!library._extends.isEmpty()) {
+    if (!library.extendsFrom.isEmpty()) {
       Symbol requirement;
 
       for (final NameContext requirementName : ctx.libraryRequirementsExpression().name()) {
         requirement = library.children.resolve(requirementName.getText());
 
         if (!TypeChecker.isLibrary(requirement)) {
-          this.results.add(new Result(
-              ctx.getStart().getInputStream().getSourceName(),
-              ctx.getStart().getLine(),
-              requirementName.getStart().getCharPositionInLine(),
-              requirementName.getStart().getCharPositionInLine() + requirementName.getText().length(),
-              "Invalid library requirement. Only libraries are valid"
-          ));
+          this.results.add(
+              new Result(
+                  ctx.getStart().getInputStream().getSourceName(),
+                  ctx.getStart().getLine(),
+                  requirementName.getStart().getCharPositionInLine(),
+                  requirementName.getStart().getCharPositionInLine()
+                      + requirementName.getText().length(),
+                  "Invalid library requirement. Only libraries are valid"));
         }
       }
     }
@@ -136,17 +138,18 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
     final String name = ctx.name().getText();
     final Symbol struct = this.symbols.resolve(name);
 
-    if (!struct._extends.isEmpty() && !struct._extends.get(0).equals("array")) {
-      final Symbol parent = struct.children.resolve(struct._extends.get(0));
+    if (!struct.extendsFrom.isEmpty() && !struct.extendsFrom.get(0).equals("array")) {
+      final Symbol parent = struct.children.resolve(struct.extendsFrom.get(0));
 
       if (!TypeChecker.isStruct(parent)) {
-        this.results.add(new Result(
-            ctx.getStart().getInputStream().getSourceName(),
-            ctx.getStart().getLine(),
-            ctx.extendsFromExpression().getStart().getCharPositionInLine(),
-            ctx.extendsFromExpression().getStart().getCharPositionInLine() + struct._extends.get(0).length(),
-            "Structs can only extend from struct or array"
-        ));
+        this.results.add(
+            new Result(
+                ctx.getStart().getInputStream().getSourceName(),
+                ctx.getStart().getLine(),
+                ctx.extendsFromExpression().getStart().getCharPositionInLine(),
+                ctx.extendsFromExpression().getStart().getCharPositionInLine()
+                    + struct.extendsFrom.get(0).length(),
+                "Structs can only extend from struct or array"));
       }
     }
 
@@ -184,13 +187,13 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
     method.registerImplementationIfNecessary();
 
     if ("onInit".equals(name) && !TypeChecker.isValidInitializer(method)) {
-      this.results.add(new Result(
-          ctx.getStart().getInputStream().getSourceName(),
-          ctx.getStart().getLine(),
-          ctx.functionSignature().name().getStart().getCharPositionInLine(),
-          ctx.functionSignature().name().getStart().getCharPositionInLine() + name.length(),
-          "Struct initializer must be static and must take no parameters"
-      ));
+      this.results.add(
+          new Result(
+              ctx.getStart().getInputStream().getSourceName(),
+              ctx.getStart().getLine(),
+              ctx.functionSignature().name().getStart().getCharPositionInLine(),
+              ctx.functionSignature().name().getStart().getCharPositionInLine() + name.length(),
+              "Struct initializer must be static and must take no parameters"));
     }
 
     final SymbolTable prevSymbols = this.symbols;
@@ -219,7 +222,7 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
   @Override
   public Symbol visitNotExpression(vrjParser.NotExpressionContext ctx) {
     this.visit(ctx.expression());
-    return this._boolean;
+    return this.booleanType;
   }
 
   @Override
@@ -282,25 +285,25 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
     final Symbol variable = this.symbols.resolve(name);
 
     if (variable.equals(Symbol.NOTHING)) {
-      this.results.add(new Result(
-          ctx.getStart().getInputStream().getSourceName(),
-          ctx.getStart().getLine(),
-          ctx.name().getStart().getCharPositionInLine(),
-          ctx.name().getStart().getCharPositionInLine() + name.length(),
-          "Variable " + name + " is not defined"
-      ));
+      this.results.add(
+          new Result(
+              ctx.getStart().getInputStream().getSourceName(),
+              ctx.getStart().getLine(),
+              ctx.name().getStart().getCharPositionInLine(),
+              ctx.name().getStart().getCharPositionInLine() + name.length(),
+              "Variable " + name + " is not defined"));
       return variable;
     }
 
     if (ctx.index != null) {
       if (!variable.flags.contains(SymbolFlag.ARRAY)) {
-        this.results.add(new Result(
-            ctx.getStart().getInputStream().getSourceName(),
-            ctx.getStart().getLine(),
-            ctx.getStart().getCharPositionInLine(),
-            ctx.getStart().getCharPositionInLine() + ctx.getText().length(),
-            "Variable " + name + " is not an array"
-        ));
+        this.results.add(
+            new Result(
+                ctx.getStart().getInputStream().getSourceName(),
+                ctx.getStart().getLine(),
+                ctx.getStart().getCharPositionInLine(),
+                ctx.getStart().getCharPositionInLine() + ctx.getText().length(),
+                "Variable " + name + " is not an array"));
 
         return variable;
       }
@@ -308,13 +311,13 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
       final Symbol index = this.visit(ctx.index);
 
       if (!TypeChecker.isValidArrayIndex(index)) {
-        this.results.add(new Result(
-            ctx.getStart().getInputStream().getSourceName(),
-            ctx.getStart().getLine(),
-            ctx.index.getStart().getCharPositionInLine(),
-            ctx.index.getStart().getCharPositionInLine() + ctx.index.getText().length(),
-            "Array index must be integer"
-        ));
+        this.results.add(
+            new Result(
+                ctx.getStart().getInputStream().getSourceName(),
+                ctx.getStart().getLine(),
+                ctx.index.getStart().getCharPositionInLine(),
+                ctx.index.getStart().getCharPositionInLine() + ctx.index.getText().length(),
+                "Array index must be integer"));
       } else {
         return this.symbols.resolve(index.type);
       }
@@ -329,13 +332,13 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
     final Symbol function = this.symbols.resolve(name);
 
     if (function.equals(Symbol.NOTHING)) {
-      this.results.add(new Result(
-          ctx.getStart().getInputStream().getSourceName(),
-          ctx.getStart().getLine(),
-          ctx.name().getStart().getCharPositionInLine(),
-          ctx.name().getStart().getCharPositionInLine() + name.length(),
-          "Function " + name + " is not defined"
-      ));
+      this.results.add(
+          new Result(
+              ctx.getStart().getInputStream().getSourceName(),
+              ctx.getStart().getLine(),
+              ctx.name().getStart().getCharPositionInLine(),
+              ctx.name().getStart().getCharPositionInLine() + name.length(),
+              "Function " + name + " is not defined"));
     } else {
       this.visit(ctx.arguments());
     }
@@ -352,13 +355,13 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
       case "==":
       case "!=":
         if (!TypeChecker.compatible(a, b)) {
-          this.results.add(new Result(
-              ctx.getStart().getInputStream().getSourceName(),
-              ctx.getStart().getLine(),
-              ctx.getStart().getCharPositionInLine(),
-              ctx.getStart().getCharPositionInLine() + ctx.getText().length(),
-              "Comparing incompatible types"
-          ));
+          this.results.add(
+              new Result(
+                  ctx.getStart().getInputStream().getSourceName(),
+                  ctx.getStart().getLine(),
+                  ctx.getStart().getCharPositionInLine(),
+                  ctx.getStart().getCharPositionInLine() + ctx.getText().length(),
+                  "Comparing incompatible types"));
         }
         break;
       case "<=":
@@ -372,7 +375,7 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
         break;
     }
 
-    return this._boolean;
+    return this.booleanType;
   }
 
   @Override
@@ -383,7 +386,7 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
     this.checkForBoolean(ctx.left, a);
     this.checkForBoolean(ctx.right, b);
 
-    return this._boolean;
+    return this.booleanType;
   }
 
   @Override
@@ -391,13 +394,13 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
     final Symbol function = this.visit(ctx.code);
 
     if (!function.equals(Symbol.NOTHING) && !function.flags.contains(SymbolFlag.FUNCTION)) {
-      this.results.add(new Result(
-          ctx.getStart().getInputStream().getSourceName(),
-          ctx.getStart().getLine(),
-          ctx.code.getStart().getCharPositionInLine(),
-          ctx.code.getStart().getCharPositionInLine() + ctx.code.getText().length(),
-          "Expected function"
-      ));
+      this.results.add(
+          new Result(
+              ctx.getStart().getInputStream().getSourceName(),
+              ctx.getStart().getLine(),
+              ctx.code.getStart().getCharPositionInLine(),
+              ctx.code.getStart().getCharPositionInLine() + ctx.code.getText().length(),
+              "Expected function"));
     }
 
     return this.code;
@@ -405,12 +408,12 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
 
   @Override
   public Symbol visitBooleanExpression(vrjParser.BooleanExpressionContext ctx) {
-    return this._boolean;
+    return this.booleanType;
   }
 
   @Override
   public Symbol visitNullExpression(vrjParser.NullExpressionContext ctx) {
-    return this._null;
+    return this.nullType;
   }
 
   @Override
@@ -437,13 +440,13 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
       final Symbol value = this.visit(ctx.value);
 
       if (!TypeChecker.compatible(variable, value)) {
-        this.results.add(new Result(
-            ctx.getStart().getInputStream().getSourceName(),
-            ctx.getStart().getLine(),
-            ctx.value.getStart().getCharPositionInLine(),
-            ctx.value.getStart().getCharPositionInLine() + ctx.value.getText().length(),
-            "Incompatible type"
-        ));
+        this.results.add(
+            new Result(
+                ctx.getStart().getInputStream().getSourceName(),
+                ctx.getStart().getLine(),
+                ctx.value.getStart().getCharPositionInLine(),
+                ctx.value.getStart().getCharPositionInLine() + ctx.value.getText().length(),
+                "Incompatible type"));
       }
     }
 
@@ -457,13 +460,13 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
     final Symbol valueType = this.symbols.resolve(value.type);
 
     if (!value.equals(Symbol.NOTHING) && !TypeChecker.compatible(variable, valueType)) {
-      this.results.add(new Result(
-          ctx.getStart().getInputStream().getSourceName(),
-          ctx.getStart().getLine(),
-          ctx.value.getStart().getCharPositionInLine(),
-          ctx.value.getStart().getCharPositionInLine() + ctx.value.getText().length(),
-          "Incompatible type"
-      ));
+      this.results.add(
+          new Result(
+              ctx.getStart().getInputStream().getSourceName(),
+              ctx.getStart().getLine(),
+              ctx.value.getStart().getCharPositionInLine(),
+              ctx.value.getStart().getCharPositionInLine() + ctx.value.getText().length(),
+              "Incompatible type"));
     }
 
     return variable;
@@ -474,13 +477,13 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
     final Symbol function = this.visit(ctx.function);
 
     if (!function.equals(Symbol.NOTHING) && !function.flags.contains(SymbolFlag.FUNCTION)) {
-      this.results.add(new Result(
-          ctx.getStart().getInputStream().getSourceName(),
-          ctx.getStart().getLine(),
-          ctx.function.getStart().getCharPositionInLine(),
-          ctx.function.getStart().getCharPositionInLine() + ctx.function.getText().length(),
-          "Not a function"
-      ));
+      this.results.add(
+          new Result(
+              ctx.getStart().getInputStream().getSourceName(),
+              ctx.getStart().getLine(),
+              ctx.function.getStart().getCharPositionInLine(),
+              ctx.function.getStart().getCharPositionInLine() + ctx.function.getText().length(),
+              "Not a function"));
     }
 
     return function;
@@ -490,14 +493,14 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
   public Symbol visitExitWhenStatement(vrjParser.ExitWhenStatementContext ctx) {
     final Symbol condition = visit(ctx.condition);
 
-    if (!TypeChecker.compatible(this._boolean, condition)) {
-      this.results.add(new Result(
-          ctx.getStart().getInputStream().getSourceName(),
-          ctx.getStart().getLine(),
-          ctx.condition.getStart().getCharPositionInLine(),
-          ctx.condition.getStart().getCharPositionInLine() + ctx.condition.getText().length(),
-          "Exitwhen condition must be a boolean expression"
-      ));
+    if (!TypeChecker.compatible(this.booleanType, condition)) {
+      this.results.add(
+          new Result(
+              ctx.getStart().getInputStream().getSourceName(),
+              ctx.getStart().getLine(),
+              ctx.condition.getStart().getCharPositionInLine(),
+              ctx.condition.getStart().getCharPositionInLine() + ctx.condition.getText().length(),
+              "Exitwhen condition must be a boolean expression"));
     }
 
     return Symbol.NOTHING;
@@ -509,13 +512,13 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
     final Symbol value = ctx.expression() == null ? Symbol.NOTHING : this.visit(ctx.expression());
 
     if (!TypeChecker.compatible(expectedValue, value)) {
-      this.results.add(new Result(
-          ctx.getStart().getInputStream().getSourceName(),
-          ctx.getStart().getLine(),
-          ctx.getStart().getCharPositionInLine(),
-          ctx.getStart().getCharPositionInLine() + ctx.getText().length(),
-          "Incompatible type"
-      ));
+      this.results.add(
+          new Result(
+              ctx.getStart().getInputStream().getSourceName(),
+              ctx.getStart().getLine(),
+              ctx.getStart().getCharPositionInLine(),
+              ctx.getStart().getCharPositionInLine() + ctx.getText().length(),
+              "Incompatible type"));
     }
 
     return expectedValue;

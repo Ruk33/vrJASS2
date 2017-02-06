@@ -14,25 +14,22 @@ import ruke.vrj.compiler.Result;
 /**
  * MIT License
  *
- * Copyright (c) 2017 Franco Montenegro
+ * <p>Copyright (c) 2017 Franco Montenegro
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
+ * <p>Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ * and associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * <p>The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * <p>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 public class Definition extends vrjBaseVisitor<Symbol> {
 
@@ -47,39 +44,34 @@ public class Definition extends vrjBaseVisitor<Symbol> {
     return this.results;
   }
 
-  private final void addAlreadyDefiedResult(final String source, final int line, final int start, final int end, final Symbol original) {
+  private final void addAlreadyDefiedResult(
+      final String source, final int line, final int start, final int end, final Symbol original) {
     String message;
 
     if (original.declaration == null) {
       message = "Symbol " + original.name + " is already defined";
     } else {
-      message = String.format(
-          "Symbol %s is already defined in %s(%d,%d,%d)",
-          original.name,
-          original.declaration.getStart().getInputStream().getSourceName(),
-          original.declaration.getStart().getLine(),
-          original.declaration.getStart().getCharPositionInLine(),
-          original.declaration.getStart().getCharPositionInLine() + original.name.length()
-      );
+      message =
+          String.format(
+              "Symbol %s is already defined in %s(%d,%d,%d)",
+              original.name,
+              original.declaration.getStart().getInputStream().getSourceName(),
+              original.declaration.getStart().getLine(),
+              original.declaration.getStart().getCharPositionInLine(),
+              original.declaration.getStart().getCharPositionInLine() + original.name.length());
     }
 
-    this.results.add(new Result(
-        source,
-        line,
-        start,
-        end,
-        message
-    ));
+    this.results.add(new Result(source, line, start, end, message));
   }
 
-  private final void addAlreadyDefiedResult(final ParserRuleContext ctx, final int start, final int end, final Symbol original) {
+  private final void addAlreadyDefiedResult(
+      final ParserRuleContext ctx, final int start, final int end, final Symbol original) {
     this.addAlreadyDefiedResult(
         ctx.getStart().getInputStream().getSourceName(),
         ctx.getStart().getLine(),
         start,
         end,
-        original
-    );
+        original);
   }
 
   @Override
@@ -92,19 +84,14 @@ public class Definition extends vrjBaseVisitor<Symbol> {
           ctx,
           ctx.name(0).getStart().getCharPositionInLine(),
           ctx.name(0).getStart().getCharPositionInLine() + name.length(),
-          defined
-      );
+          defined);
 
       return null;
     }
 
-    final Symbol library = new Symbol(
-        this.symbols.owner,
-        name,
-        "nothing",
-        ImmutableSet.of(SymbolFlag.LIBRARY),
-        ctx.name(0)
-    );
+    final Symbol library =
+        new Symbol(
+            this.symbols.owner, name, "nothing", ImmutableSet.of(SymbolFlag.LIBRARY), ctx.name(0));
 
     if (ctx.initializer != null) {
       library.initializer = ctx.initializer.getText();
@@ -138,19 +125,14 @@ public class Definition extends vrjBaseVisitor<Symbol> {
           ctx,
           ctx.name(0).getStart().getCharPositionInLine(),
           ctx.name(0).getStart().getCharPositionInLine() + name.length(),
-          defined
-      );
+          defined);
 
       return null;
     }
 
-    final Symbol scope = new Symbol(
-        this.symbols.owner,
-        name,
-        "nothing",
-        ImmutableSet.of(SymbolFlag.SCOPE),
-        ctx.name(0)
-    );
+    final Symbol scope =
+        new Symbol(
+            this.symbols.owner, name, "nothing", ImmutableSet.of(SymbolFlag.SCOPE), ctx.name(0));
 
     if (ctx.initializer != null) {
       scope.initializer = ctx.initializer.getText();
@@ -178,27 +160,17 @@ public class Definition extends vrjBaseVisitor<Symbol> {
           ctx,
           ctx.name().getStart().getCharPositionInLine(),
           ctx.name().getStart().getCharPositionInLine() + name.length(),
-          defined
-      );
+          defined);
 
       return defined;
     }
 
-    final Symbol struct = new Symbol(
-        this.symbols.owner,
-        name,
-        name,
-        ImmutableSet.of(SymbolFlag.STRUCT),
-        ctx.name()
-    );
+    final Symbol struct =
+        new Symbol(this.symbols.owner, name, name, ImmutableSet.of(SymbolFlag.STRUCT), ctx.name());
 
-    final Symbol thistype = new Symbol(
-        struct,
-        "thistype",
-        struct.name,
-        ImmutableSet.of(SymbolFlag.VARIABLE),
-        ctx.name()
-    );
+    final Symbol thistype =
+        new Symbol(
+            struct, "thistype", struct.name, ImmutableSet.of(SymbolFlag.VARIABLE), ctx.name());
 
     struct.children.define(thistype);
 
@@ -229,19 +201,14 @@ public class Definition extends vrjBaseVisitor<Symbol> {
           ctx,
           ctx.name().getStart().getCharPositionInLine(),
           ctx.name().getStart().getCharPositionInLine() + name.length(),
-          defined
-      );
+          defined);
 
       return null;
     }
 
-    final Symbol variable = new Symbol(
-        this.symbols.owner,
-        name,
-        type,
-        ImmutableSet.of(SymbolFlag.VARIABLE),
-        ctx.name()
-    );
+    final Symbol variable =
+        new Symbol(
+            this.symbols.owner, name, type, ImmutableSet.of(SymbolFlag.VARIABLE), ctx.name());
 
     this.symbols.define(variable);
 
@@ -259,19 +226,18 @@ public class Definition extends vrjBaseVisitor<Symbol> {
           ctx,
           ctx.name().getStart().getCharPositionInLine(),
           ctx.name().getStart().getCharPositionInLine() + name.length(),
-          defined
-      );
+          defined);
 
       return null;
     }
 
-    final Symbol variable = new Symbol(
-        this.symbols.owner,
-        name,
-        type,
-        ImmutableSet.of(SymbolFlag.VARIABLE, SymbolFlag.ARRAY),
-        ctx.name()
-    );
+    final Symbol variable =
+        new Symbol(
+            this.symbols.owner,
+            name,
+            type,
+            ImmutableSet.of(SymbolFlag.VARIABLE, SymbolFlag.ARRAY),
+            ctx.name());
 
     this.symbols.define(variable);
 
@@ -301,19 +267,14 @@ public class Definition extends vrjBaseVisitor<Symbol> {
           ctx,
           ctx.name().getStart().getCharPositionInLine(),
           ctx.name().getStart().getCharPositionInLine() + name.length(),
-          defined
-      );
+          defined);
 
       return null;
     }
 
-    final Symbol function = new Symbol(
-        this.symbols.owner,
-        name,
-        type,
-        ImmutableSet.of(SymbolFlag.FUNCTION),
-        ctx.name()
-    );
+    final Symbol function =
+        new Symbol(
+            this.symbols.owner, name, type, ImmutableSet.of(SymbolFlag.FUNCTION), ctx.name());
 
     this.symbols.define(function);
 
@@ -336,13 +297,13 @@ public class Definition extends vrjBaseVisitor<Symbol> {
     }
 
     if (ctx.sstatic == null) {
-      final Symbol _this = new Symbol(
-          method,
-          "this",
-          this.symbols.owner.type,
-          ImmutableSet.of(SymbolFlag.VARIABLE),
-          ctx.functionSignature()
-      );
+      final Symbol _this =
+          new Symbol(
+              method,
+              "this",
+              this.symbols.owner.type,
+              ImmutableSet.of(SymbolFlag.VARIABLE),
+              ctx.functionSignature());
 
       method.addParam(_this);
     } else {
@@ -373,19 +334,13 @@ public class Definition extends vrjBaseVisitor<Symbol> {
           ctx,
           ctx.typeName.getStart().getCharPositionInLine(),
           ctx.typeName.getStart().getCharPositionInLine() + name.length(),
-          defined
-      );
+          defined);
 
       return null;
     }
 
-    final Symbol type = new Symbol(
-        this.symbols.owner,
-        name,
-        name,
-        ImmutableSet.of(SymbolFlag.TYPE),
-        ctx.typeName
-    );
+    final Symbol type =
+        new Symbol(this.symbols.owner, name, name, ImmutableSet.of(SymbolFlag.TYPE), ctx.typeName);
 
     if (ctx.typeExtends != null) {
       final String _extends = ctx.typeExtends.getText();
@@ -408,19 +363,13 @@ public class Definition extends vrjBaseVisitor<Symbol> {
           ctx,
           ctx.name().getStart().getCharPositionInLine(),
           ctx.name().getStart().getCharPositionInLine() + name.length(),
-          defined
-      );
+          defined);
 
       return null;
     }
 
-    final Symbol param = new Symbol(
-        this.symbols.owner,
-        name,
-        type,
-        ImmutableSet.of(SymbolFlag.VARIABLE),
-        ctx
-    );
+    final Symbol param =
+        new Symbol(this.symbols.owner, name, type, ImmutableSet.of(SymbolFlag.VARIABLE), ctx);
 
     this.symbols.owner.addParam(param);
 
