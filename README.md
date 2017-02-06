@@ -18,7 +18,7 @@ ANTLR Version: 4.5.3
 
 ```
 cd path/to/vrj
-gradle buildGrammar
+./gradlew buildGrammar
 ```
 
 How to compile?
@@ -27,7 +27,7 @@ Does not requires the compiled grammar (it will do it automatically).
 
 ```
 cd path/to/vrj
-gradle build
+./gradlew build
 ```
 
 How to use it?
@@ -60,7 +60,7 @@ Code style
 Code style check
 ================
 ```
-gradle check
+./gradlew check
 ```
 
 Code style auto fix
