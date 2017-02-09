@@ -61,6 +61,7 @@ public class MathExpression implements Expression {
 
   /**
    * Create math expression.
+   *
    * @param left Left expression
    * @param operator Operator
    * @param right Right expression.

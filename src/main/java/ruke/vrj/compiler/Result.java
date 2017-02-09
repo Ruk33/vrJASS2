@@ -30,6 +30,7 @@ public class Result {
 
   /**
    * Create compiler result.
+   *
    * @param source Path to file
    * @param line Line
    * @param start Column start
@@ -52,6 +53,7 @@ public class Result {
 
   /**
    * Print result as string.
+   *
    * @return Result
    */
   public final String toString() {

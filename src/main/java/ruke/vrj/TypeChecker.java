@@ -26,6 +26,7 @@ public class TypeChecker {
 
   /**
    * Check if symbol is valid number (integer or real).
+   *
    * @param expression To check
    * @return True if valid number
    */
@@ -35,6 +36,7 @@ public class TypeChecker {
 
   /**
    * Check if valid function call (args count match, types, etc.).
+   *
    * @param function Function to check
    * @param args Arguments
    * @return True if valid function call
@@ -61,6 +63,7 @@ public class TypeChecker {
 
   /**
    * Check if symbol is a valid array index.
+   *
    * @param index Which symbol to validate
    * @return True if valid array index
    */
@@ -74,6 +77,7 @@ public class TypeChecker {
 
   /**
    * Check if symbol is struct.
+   *
    * @param struct To check for
    * @return True if struct
    */
@@ -83,6 +87,7 @@ public class TypeChecker {
 
   /**
    * Check if symbol is a library.
+   *
    * @param library To check for
    * @return True if library
    */
@@ -95,6 +100,7 @@ public class TypeChecker {
    * 1) Is a function/method
    * 2) Takes no params
    * 3) It is static if method
+   *
    * @param initializer To check for
    * @return True if valid initializer
    */
@@ -121,6 +127,7 @@ public class TypeChecker {
 
   /**
    * Check if symbols are compatible.
+   *
    * @param symbolA Symbol a
    * @param symbolB Symbol b
    * @return True if compatible

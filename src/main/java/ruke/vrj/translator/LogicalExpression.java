@@ -43,6 +43,7 @@ public class LogicalExpression implements Expression {
 
   /**
    * Create logical expression.
+   *
    * @param left Left expression
    * @param operator Operator
    * @param right Right expression

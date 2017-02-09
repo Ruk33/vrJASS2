@@ -24,6 +24,7 @@ import ruke.vrj.SymbolFlag;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 public class NameGenerator {
+
   /**
    * Generate name for symbol taking in consideration its parents.
    *

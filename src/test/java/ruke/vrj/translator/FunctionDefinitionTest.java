@@ -113,13 +113,13 @@ public class FunctionDefinitionTest {
             "return person_name[this]",
             "endfunction"),
         new FunctionDefinition(
-                personGetName,
-                ImmutableList.of(
-                    new ReturnStatement(
-                        new ChainExpression(
-                            ImmutableList.of(
-                                new VariableExpression(personGetName.children.resolve("this")),
-                                new VariableExpression(personPropertyName))))))
+            personGetName,
+            ImmutableList.of(
+                new ReturnStatement(
+                    new ChainExpression(
+                        ImmutableList.of(
+                            new VariableExpression(personGetName.children.resolve("this")),
+                            new VariableExpression(personPropertyName))))))
             .toString());
   }
 

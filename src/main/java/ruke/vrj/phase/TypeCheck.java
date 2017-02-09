@@ -45,6 +45,7 @@ public class TypeCheck extends vrjBaseVisitor<Symbol> {
 
   /**
    * Create a type check visitor.
+   *
    * @param symbols Symbols
    */
   public TypeCheck(final SymbolTable symbols) {

@@ -31,7 +31,9 @@ public class Symbol {
   public static final Symbol NOTHING =
       new Symbol(null, "nothing", "nothing", ImmutableSet.of(SymbolFlag.TYPE), null);
 
-  /** Unique id of the symbol. It is used as a virtual type for structs */
+  /**
+   * Unique id of the symbol. It is used as a virtual type for structs
+   */
   public final int id;
 
   public final Symbol parent;
@@ -43,17 +45,23 @@ public class Symbol {
 
   public final String name;
 
-  /** Name of the type (in function, it refers to the return type). */
+  /**
+   * Name of the type (in function, it refers to the return type).
+   */
   public final String type;
 
   public ImmutableSet<SymbolFlag> flags;
 
   public final SymbolTable children;
 
-  /** Node where it was declared. */
+  /**
+   * Node where it was declared.
+   */
   public final ParserRuleContext declaration;
 
-  /** Name of the symbols that extends from. */
+  /**
+   * Name of the symbols that extends from.
+   */
   public final ArrayList<String> extendsFrom;
 
   public final ArrayList<Symbol> params;
@@ -63,13 +71,13 @@ public class Symbol {
    * example:</p>
    *
    * <code>struct foo
-   *  method lorem ...
-   *  endmethod
+   * method lorem ...
+   * endmethod
    * endstruct
    *
    * struct bar extends foo
-   *  method lorem ...
-   *  endmethod
+   * method lorem ...
+   * endmethod
    * endstruct</code>
    *
    * <p>The implementations set will only be populated using the {registerImplementationIfNecessary}
@@ -83,6 +91,7 @@ public class Symbol {
 
   /**
    * Create a new symbol.
+   *
    * @param parent Parent of the symbol
    * @param name Name of the symbol
    * @param type Type of the symbol (for functions, this will be its return type)
@@ -155,13 +164,16 @@ public class Symbol {
     this.children.define(new Symbol(this, "null", "null", ImmutableSet.of(SymbolFlag.TYPE), null));
   }
 
-  /** Reset the counter of the ids (useful for tests). */
+  /**
+   * Reset the counter of the ids (useful for tests).
+   */
   public static void resetIdCounter() {
     Symbol.ID = 0;
   }
 
   /**
    * Add flag to symbol.
+   *
    * @param flag Which flag to add
    */
   public final void addFlag(final SymbolFlag flag) {
@@ -170,6 +182,7 @@ public class Symbol {
 
   /**
    * Make symbol extends another symbol.
+   *
    * @param whichExtend Name of the symbol to extend
    */
   public final void addExtends(final String whichExtend) {
@@ -180,6 +193,7 @@ public class Symbol {
 
   /**
    * Add param to symbol (used only in functions).
+   *
    * @param param Which param to include
    */
   public final void addParam(final Symbol param) {
@@ -189,6 +203,7 @@ public class Symbol {
 
   /**
    * Fetch all possible types of a symbol.
+   *
    * @param fetchedTypes Already fetched types (prevent possible stack overflows)
    * @return All possible types of symbol
    */
@@ -214,6 +229,7 @@ public class Symbol {
 
   /**
    * Get all types of a symbol.
+   *
    * @return Types of the symbol
    */
   public final ArrayList<Symbol> getTypes() {
@@ -222,6 +238,7 @@ public class Symbol {
 
   /**
    * If a method is overwritten we need to keep track of all the implementation.
+   *
    * @param implementation Which implementation to add
    */
   private final void addImplementation(final Symbol implementation) {

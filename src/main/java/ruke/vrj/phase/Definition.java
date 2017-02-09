@@ -305,7 +305,15 @@ public class Definition extends vrjBaseVisitor<Symbol> {
               ImmutableSet.of(SymbolFlag.VARIABLE),
               ctx.functionSignature());
 
-      method.addParam(_this);
+      if (method.children.resolve("this").equals(Symbol.NOTHING)) {
+        method.addParam(_this);
+      } else {
+        this.addAlreadyDefiedResult(
+            ctx,
+            ctx.functionSignature().getStart().getCharPositionInLine(),
+            ctx.functionSignature().getStart().getCharPositionInLine() + method.name.length(),
+            method.children.resolve("this"));
+      }
     } else {
       method.addFlag(SymbolFlag.STATIC);
     }

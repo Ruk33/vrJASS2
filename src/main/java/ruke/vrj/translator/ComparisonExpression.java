@@ -67,6 +67,7 @@ public class ComparisonExpression implements Expression {
 
   /**
    * Create a comparison expression.
+   *
    * @param left Left expression
    * @param operator Operator
    * @param right Right expression

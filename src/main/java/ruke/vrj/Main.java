@@ -32,6 +32,7 @@ public class Main {
 
   /**
    * Starting point, lets do some magic.
+   *
    * @param args Arguments
    */
   public static void main(String[] args) {

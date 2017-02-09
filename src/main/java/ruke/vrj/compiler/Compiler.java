@@ -38,6 +38,7 @@ public class Compiler {
 
   /**
    * Get results (errors, warnings, etc.) of compilation.
+   *
    * @return Results
    */
   public ArrayList<Result> getResults() {
@@ -46,6 +47,7 @@ public class Compiler {
 
   /**
    * Compile from ANTLRInputStream.
+   *
    * @param input Input to compile from
    * @return Compiled code (empty if it contains errors)
    */
@@ -82,6 +84,7 @@ public class Compiler {
 
   /**
    * Compile from string.
+   *
    * @param code To compile
    * @return Compiled code (empty if it contains errors)
    */

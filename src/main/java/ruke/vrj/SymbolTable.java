@@ -32,6 +32,7 @@ public class SymbolTable {
 
   /**
    * Create symbol table.
+   *
    * @param parent Parent of the symbol table
    * @param owner Symbol owning symbol table (for example, an struct)
    */
@@ -54,6 +55,7 @@ public class SymbolTable {
 
   /**
    * Copy only the symbols of a SymbolTable (ignore parent & owner).
+   *
    * @param copy Which symbol table to copy
    * @return Copied symbol table
    */
@@ -74,6 +76,7 @@ public class SymbolTable {
 
   /**
    * Find symbol in symbol table.
+   *
    * @param name Name to search for
    * @return Symbol (Symbol.NOTHING is returned if the symbol wasn't found)
    */
