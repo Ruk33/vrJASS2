@@ -51,7 +51,6 @@ typechecking & translation.
 - **src/main/java/ruke/vrj/translator:** Classes that handle how each expession 
 will be translated.
 - **src/main/java/ruke/vrj/util**
-- **src/main/java/ruke/vrj/exceptions**
 
 Code style
 ==========
